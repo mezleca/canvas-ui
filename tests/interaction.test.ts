@@ -49,14 +49,12 @@ test("ui render loop - hover triggers redraw", async () => {
     ui.on_mouse_move({ x: 50, y: 50 });
 
     // frame 2:
-    // render() checks dirty -> false (input changed but update hasn't run yet)
-    // update() runs -> sets node state to hover -> mark_dirty()
+    // update runs before render, so hover state is applied immediately
     await ui.render(32);
-    expect(renderer.render_calls).toBe(1);
+    expect(renderer.render_calls).toBe(2);
 
     // frame 3:
-    // render() checks dirty -> true (from frame 2 update)
-    // should redraw
+    // no additional changes, no new render
     await ui.render(48);
     expect(renderer.render_calls).toBe(2);
 

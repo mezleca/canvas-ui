@@ -10,6 +10,10 @@ export const create_mock_ui = (overrides: MockInputOverrides = {}) => {
         screen: { w: 800, h: 600, ...(overrides.screen || {}) },
         cursor: { x: 0, y: 0, delta_y: 0, delta_x: 0, ...(overrides.cursor || {}) },
         keys: overrides.keys || new Set(),
+        prev_keys: new Set(),
+        just_pressed: new Set(),
+        just_released: new Set(),
+        keys_changed: false,
         focused_node: overrides.focused_node ?? null
     };
 
