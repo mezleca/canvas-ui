@@ -1,0 +1,22 @@
+{
+    "name": "canvas-ui",
+    "module": "index.ts",
+    "type": "module",
+    "private": true,
+    "scripts": {
+        "format": "prettier --write .",
+        "dev": "bun run format && bun --hot ./showcase/index.html",
+        "test": "bun run format && bun test",
+        "typecheck": "bunx tsc --noEmit"
+    },
+    "devDependencies": {
+        "@types/bun": "latest"
+    },
+    "peerDependencies": {
+        "typescript": "^5"
+    },
+    "dependencies": {
+        "prettier": "^3.8.1",
+        "prettier-plugin-svelte": "^3.4.1"
+    }
+}
