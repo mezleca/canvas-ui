@@ -5,12 +5,13 @@
     "private": true,
     "scripts": {
         "format": "prettier --write .",
-        "dev": "bun run format && bun --hot ./showcase/index.html",
+        "dev": "bun run format && bunx vite --config vite.config.ts --host --port 3000",
         "test": "bun run format && bun test",
         "typecheck": "bunx tsc --noEmit"
     },
     "devDependencies": {
-        "@types/bun": "latest"
+        "@types/bun": "latest",
+        "vite": "^6.1.0"
     },
     "peerDependencies": {
         "typescript": "^5"
