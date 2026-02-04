@@ -213,10 +213,11 @@ export class FlexLayout extends BaseLayout {
                 const child_cross_size = is_row ? child.h : child.w;
 
                 let cross_pos = row.position;
+                const cross_space = !is_row && !this.wrap ? content_bounds.w : row.cross_size;
                 if (this.align == "center") {
-                    cross_pos += (row.cross_size - child_cross_size) / 2;
+                    cross_pos += (cross_space - child_cross_size) / 2;
                 } else if (this.align == "end") {
-                    cross_pos += row.cross_size - child_cross_size;
+                    cross_pos += cross_space - child_cross_size;
                 }
 
                 const x = content_bounds.x + (is_row ? current_main : cross_pos);

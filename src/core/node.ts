@@ -90,6 +90,7 @@ export class Node {
 
         for (let i = children.length - 1; i >= 0; i--) {
             if (children[i]!.id == id) {
+                children[i]!.parent = null;
                 children.splice(i, 1);
                 break;
             }
@@ -205,18 +206,6 @@ export class Node {
     update_pos(x?: number, y?: number): void {
         if (x != undefined) this.x = x;
         if (y != undefined) this.y = y;
-    }
-
-    set_position(x: number, y: number): this {
-        this.x = x;
-        this.y = y;
-        return this;
-    }
-
-    set_size(w: number, h: number): this {
-        this.w = w;
-        this.h = h;
-        return this;
     }
 
     set_bounds(x: number, y: number, w: number, h: number): this {
@@ -415,6 +404,24 @@ export class Node {
     set_text(value: string): this {
         if (this.text != value) {
             this.text = value;
+            this.mark_dirty();
+        }
+        return this;
+    }
+
+    set_position(x: number, y: number): this {
+        if (this.x != x || this.y != y) {
+            this.x = x;
+            this.y = y;
+            this.mark_dirty();
+        }
+        return this;
+    }
+
+    set_size(w: number, h: number): this {
+        if (this.w != w || this.h != h) {
+            this.w = w;
+            this.h = h;
             this.mark_dirty();
         }
         return this;
