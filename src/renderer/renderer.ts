@@ -29,6 +29,9 @@ export interface Renderer {
     should_render?(node: Node): boolean;
     mark_rendered?(node: Node): void;
     cleanup_unused?(active_nodes: Node[]): void;
+
+    // optional viewport resize hook
+    resize_viewport?(width: number, height: number, dpr: number): void;
 }
 
 type CachedNodeData = {

@@ -39,7 +39,11 @@ export class ColorProperty extends StyleProperty<Color> {
     }
 
     override set value(color: Partial<Color>) {
-        super.value = { ...DEFAULT_COLOR, ...this._value, ...color };
+        const next = { ...DEFAULT_COLOR, ...this._value, ...color };
+        if (!("a" in color)) {
+            next.a = 255;
+        }
+        super.value = next;
     }
 
     to_rgb(): string {

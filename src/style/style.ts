@@ -49,6 +49,9 @@ export class NodeStyle {
                 const original_on_change = (prop as any)._on_change;
                 (prop as any)._on_change = (new_value: any, old_value: any) => {
                     this.element.mark_dirty();
+                    if (key === "z_index" && this.element._notify_parent_order_change) {
+                        this.element._notify_parent_order_change();
+                    }
                     original_on_change(new_value, old_value);
                 };
             }
@@ -272,6 +275,11 @@ export class NodeStyle {
 
     rotate(value: number, states: StateName | StateName[] | null = null): this {
         this._apply_to_states({ rotate: value }, states);
+        return this;
+    }
+
+    z_index(value: number, states: StateName | StateName[] | null = null): this {
+        this._apply_to_states({ z_index: value }, states);
         return this;
     }
 

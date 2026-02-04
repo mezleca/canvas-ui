@@ -22,6 +22,7 @@ export class Node {
     ui: UI | null;
     style: NodeStyle;
     behaviors: Behavior[];
+    children_order_dirty: boolean;
 
     // event system
     private events: Map<string, (node: Node) => void>;
@@ -44,6 +45,7 @@ export class Node {
         this.ui = null;
         this.style = new NodeStyle(this);
         this.behaviors = [];
+        this.children_order_dirty = false;
 
         this.events = new Map();
         this.hovering = false;
@@ -55,6 +57,7 @@ export class Node {
         child.parent = this;
         child._propagate_ui_reference(this.ui);
         this.children.push(child);
+        this.children_order_dirty = true;
         this.mark_dirty();
         if (this.ui) {
             this.ui.nodes_changed = true;
@@ -92,6 +95,7 @@ export class Node {
             if (children[i]!.id == id) {
                 children[i]!.parent = null;
                 children.splice(i, 1);
+                this.children_order_dirty = true;
                 break;
             }
         }
@@ -103,6 +107,25 @@ export class Node {
         }
 
         return this;
+    }
+
+    _notify_parent_order_change(): void {
+        if (this.parent) {
+            this.parent.children_order_dirty = true;
+            this.parent.mark_dirty();
+        }
+    }
+
+    _ensure_children_order(): void {
+        if (!this.children_order_dirty || this.children.length <= 1) return;
+        // stable sort keeps insertion order for equal z_index
+        this.children.sort((a, b) => {
+            const za = a.get_style().z_index.value;
+            const zb = b.get_style().z_index.value;
+            if (za === zb) return 0;
+            return za - zb;
+        });
+        this.children_order_dirty = false;
     }
 
     mark_dirty(): void {
@@ -188,6 +211,7 @@ export class Node {
         }
 
         // render children
+        this._ensure_children_order();
         const children = this.children;
 
         for (let i = 0; i < children.length; i++) {

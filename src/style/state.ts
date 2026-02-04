@@ -46,6 +46,7 @@ export class StyleState {
     // other
     padding: StyleProperty<[number, number, number, number]>;
     rotate: StyleProperty<number>;
+    z_index: StyleProperty<number>;
 
     constructor() {
         this.text_align = new StyleProperty<TextAlign>("left", {
@@ -88,7 +89,8 @@ export class StyleState {
         this.border_size = new StyleProperty(0, { min: 0 });
         this.border_radius = new StyleProperty(0, { min: 0 });
         this.border_color = new ColorProperty({ r: 180, g: 180, b: 180, a: 120 });
-        this.background_color = new ColorProperty();
+        // default to transparent like a plain div (no fill)
+        this.background_color = new ColorProperty({ r: 0, g: 0, b: 0, a: 0 });
 
         this.scrollbar_width = new StyleProperty(12, { min: 1 });
         this.scrollbar_thumb_width = new StyleProperty(12, { min: 1 });
@@ -101,6 +103,7 @@ export class StyleState {
         });
 
         this.rotate = new StyleProperty(0);
+        this.z_index = new StyleProperty(0);
     }
 
     copy(): StyleState {

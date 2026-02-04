@@ -27,6 +27,22 @@ export class CanvasRenderer extends BaseRenderer {
         this.canvas.height = height;
     }
 
+    resize_viewport(width: number, height: number, dpr: number): void {
+        if (!this.canvas) return;
+        this.canvas.width = width * dpr;
+        this.canvas.height = height * dpr;
+        this.canvas.style.width = width + "px";
+        this.canvas.style.height = height + "px";
+        this.canvas.style.display = "block";
+        if (document.body) {
+            document.body.style.margin = "0";
+            document.body.style.overflow = "hidden";
+        }
+        if (this.ctx) {
+            this.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        }
+    }
+
     clear(): void {
         if (!this.ctx || !this.canvas) return;
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
@@ -56,15 +72,19 @@ export class CanvasRenderer extends BaseRenderer {
 
         if (style.background_color.value) {
             const c = style.background_color.value;
-            ctx.fillStyle = `rgba(${c.r}, ${c.g}, ${c.b}, ${c.a / 255})`;
-            ctx.fill();
+            if (c.a > 0) {
+                ctx.fillStyle = `rgba(${c.r}, ${c.g}, ${c.b}, ${c.a / 255})`;
+                ctx.fill();
+            }
         }
 
         if (style.border_color.value && border > 0) {
             const c = style.border_color.value;
-            ctx.strokeStyle = `rgba(${c.r}, ${c.g}, ${c.b}, ${c.a / 255})`;
-            ctx.lineWidth = border;
-            ctx.stroke();
+            if (c.a > 0) {
+                ctx.strokeStyle = `rgba(${c.r}, ${c.g}, ${c.b}, ${c.a / 255})`;
+                ctx.lineWidth = border;
+                ctx.stroke();
+            }
         }
 
         ctx.restore();

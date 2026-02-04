@@ -1,15 +1,7 @@
 import { Node } from "./node.ts";
 import type { Renderer } from "../renderer/renderer.ts";
-import { CanvasRenderer } from "../renderer/canvas.ts";
 import { register_ui, unregister_ui, type EventData } from "./events.ts";
 import { create_input_state, type InputState } from "./input.ts";
-import { BoxWidget } from "../widgets/box.ts";
-import { TextWidget } from "../widgets/text.ts";
-import { ButtonWidget } from "../widgets/button.ts";
-import { ImageWidget } from "../widgets/image.ts";
-import { FlexLayout, type FlexAlign, type FlexDirection, type FlexJustify } from "../layout/flex.ts";
-import { FreeLayout } from "../layout/free.ts";
-import type { Color } from "../style/color.ts";
 
 export class UI {
     renderer: Renderer;
@@ -143,6 +135,7 @@ export class UI {
         if (this._is_point_in_rect(cursor_x, cursor_y, visual_x, visual_y, node.w, node.h)) {
             // check children (top-most / last painted first)
             // assuming children are painted in order, so last child is on top
+            node._ensure_children_order();
             const children = node.children;
 
             // if the node clips its content, only hit-test children inside the content bounds
@@ -206,121 +199,6 @@ export class UI {
         if (this.time_smoothing === 0) {
             this.smoothed_delta = 0;
         }
-    }
-
-    create_box(
-        options: {
-            w?: number;
-            h?: number;
-            bg?: Color;
-            radius?: number;
-            border?: number;
-            border_color?: Color;
-            padding?: number | [number, number, number, number];
-            parent?: any;
-        } = {}
-    ): BoxWidget {
-        const box = new BoxWidget(options.w, options.h);
-        if (options.bg) box.style.background_color(options.bg);
-        if (options.border != null) {
-            if (options.border_color) {
-                box.style.border(options.border, options.border_color);
-            } else {
-                box.style.border(options.border);
-            }
-        }
-        if (options.radius != null) box.style.border_radius(options.radius);
-        if (options.padding != null) {
-            if (Array.isArray(options.padding)) {
-                box.style.padding(options.padding[0], options.padding[1], options.padding[2], options.padding[3]);
-            } else {
-                box.style.padding(options.padding);
-            }
-        }
-        if (options.parent && options.parent.add_children) {
-            options.parent.add_children(box);
-        }
-        return box;
-    }
-
-    create_text(
-        options: {
-            text?: string;
-            font?: string;
-            size?: number;
-            color?: Color;
-            align?: "left" | "center" | "right" | "start" | "end";
-            baseline?: "alphabetic" | "top" | "hanging" | "middle" | "ideographic" | "bottom";
-            parent?: any;
-        } = {}
-    ): TextWidget {
-        const text = new TextWidget(options.text);
-        if (options.font || options.size || options.color) {
-            text.style.font(options.font || "Arial", options.size || 14, options.color || { r: 255, g: 255, b: 255, a: 255 });
-        }
-        if (options.align) text.style.text_align(options.align);
-        if (options.baseline) text.style.text_baseline(options.baseline);
-        if (options.parent && options.parent.add_children) {
-            options.parent.add_children(text);
-        }
-        return text;
-    }
-
-    create_button(
-        options: {
-            text?: string;
-            w?: number;
-            h?: number;
-            on_click?: (node: any) => void;
-            parent?: any;
-        } = {}
-    ): ButtonWidget {
-        const btn = new ButtonWidget(options.text, options.w, options.h);
-        if (options.on_click) btn.on_click(options.on_click as any);
-        if (options.parent && options.parent.add_children) {
-            options.parent.add_children(btn);
-        }
-        return btn;
-    }
-
-    create_image(options: { src?: string; w?: number; h?: number; parent?: any } = {}): ImageWidget {
-        const image = new ImageWidget(options.src, options.w, options.h);
-        if (options.parent && options.parent.add_children) {
-            options.parent.add_children(image);
-        }
-        return image;
-    }
-
-    create_flex(
-        options: {
-            w?: number;
-            h?: number;
-            direction?: FlexDirection;
-            gap?: number;
-            wrap?: boolean;
-            justify?: FlexJustify;
-            align?: FlexAlign;
-            parent?: any;
-        } = {}
-    ): FlexLayout {
-        const flex = new FlexLayout(options.w, options.h);
-        if (options.direction) flex.set_direction(options.direction);
-        if (options.gap != null) flex.set_gap(options.gap);
-        if (options.wrap != null) flex.set_wrap(options.wrap);
-        if (options.justify) flex.set_justify(options.justify);
-        if (options.align) flex.set_align(options.align);
-        if (options.parent && options.parent.add_children) {
-            options.parent.add_children(flex);
-        }
-        return flex;
-    }
-
-    create_free(options: { w?: number; h?: number; parent?: any } = {}): FreeLayout {
-        const free = new FreeLayout(options.w, options.h);
-        if (options.parent && options.parent.add_children) {
-            options.parent.add_children(free);
-        }
-        return free;
     }
 
     on_mouse_move(data: EventData): void {
@@ -396,7 +274,7 @@ export class UI {
     }
 
     update_viewport(): boolean {
-        if (!(this.renderer instanceof CanvasRenderer) || typeof window == "undefined") {
+        if (typeof window == "undefined") {
             return false;
         }
 
@@ -425,21 +303,8 @@ export class UI {
             this.root.mark_dirty_recursive();
         }
 
-        if (this.renderer.canvas) {
-            this.renderer.canvas.width = screen_w * device_pixel_rate;
-            this.renderer.canvas.height = screen_h * device_pixel_rate;
-            this.renderer.canvas.style.width = screen_w + "px";
-            this.renderer.canvas.style.height = screen_h + "px";
-            // css reset for fullscreen
-            this.renderer.canvas.style.display = "block";
-            if (document.body) {
-                document.body.style.margin = "0";
-                document.body.style.overflow = "hidden";
-            }
-
-            if (this.renderer.ctx) {
-                this.renderer.ctx.setTransform(device_pixel_rate, 0, 0, device_pixel_rate, 0, 0);
-            }
+        if (this.renderer.resize_viewport) {
+            this.renderer.resize_viewport(screen_w, screen_h, device_pixel_rate);
         }
 
         return true;
@@ -447,47 +312,65 @@ export class UI {
 
     async render(current_time: number): Promise<void> {
         const viewport_changed = this.update_viewport();
-        if (this.continuous_render) {
-            this.should_render = true;
-        }
+        if (this.continuous_render) this.should_render = true;
 
-        // update before render so state changes apply in the same frame
+        // update input + layout before any render pass
         this.update(current_time);
-
-        // recollect nodes only when tree structure changed
-        if (this.nodes_changed) {
-            this._collect_all_nodes();
-            this.nodes_changed = false;
-        }
+        this._refresh_nodes_if_needed();
 
         if (this.should_render || this.needs_render || viewport_changed) {
-            this.renderer.clear();
-            this.root.render(this.renderer, this.internal_time);
-
-            if (this.renderer.cleanup_unused) {
-                this.renderer.cleanup_unused(this.all_nodes);
-            }
-
-            this.should_render = false;
-            this.needs_render = false;
-
-            // clear dirty flags
-            const nodes = this.all_nodes;
-            for (let i = 0; i < nodes.length; i++) {
-                nodes[i]!.is_dirty = false;
-            }
+            this._render_frame();
         }
     }
 
     update(current_time: number): void {
+        this._update_time(current_time);
+        this._update_focus();
+        // update behaviors/layouts with the latest dt
+        this.root.update_recursive(this.delta_time);
+        this._update_key_transitions();
+        this._reset_wheel();
+        this._update_fps(current_time);
+    }
+
+    destroy(): void {
+        unregister_ui(this);
+    }
+
+    private _refresh_nodes_if_needed(): void {
+        if (!this.nodes_changed) return;
+        this._collect_all_nodes();
+        this.nodes_changed = false;
+    }
+
+    private _render_frame(): void {
+        this.renderer.clear();
+        this.root.render(this.renderer, this.internal_time);
+
+        if (this.renderer.cleanup_unused) {
+            this.renderer.cleanup_unused(this.all_nodes);
+        }
+
+        // render pass complete, reset dirty flags
+        this.should_render = false;
+        this.needs_render = false;
+
+        const nodes = this.all_nodes;
+        for (let i = 0; i < nodes.length; i++) {
+            nodes[i]!.is_dirty = false;
+        }
+    }
+
+    private _update_time(current_time: number): void {
         this.delta_time = (current_time - this.last_time) / 1000;
         this.last_time = current_time;
 
-        // clamp delta time to avoid large jumps after tab focus
+        // clamp dt spikes to keep simulation stable
         if (this.delta_time > 0.1) {
             this.delta_time = 0.1;
         }
 
+        // optional dt smoothing for more consistent motion
         if (this.time_smoothing > 0) {
             if (this.smoothed_delta === 0) {
                 this.smoothed_delta = this.delta_time;
@@ -498,56 +381,56 @@ export class UI {
         }
 
         this.internal_time += this.delta_time;
+    }
 
-        // update focus first (hit test)
+    private _update_focus(): void {
         const input = this.input_state;
         input.focused_node = this._hit_test_recursive(this.root, 0, 0, input.cursor.x, input.cursor.y);
+    }
 
-        this.root.update_recursive(this.delta_time);
-
-        // update key transitions only when key state changes
-        if (this.input_state.keys_changed || this.input_state.just_pressed.size > 0 || this.input_state.just_released.size > 0) {
-            const just_pressed = this.input_state.just_pressed;
-            const just_released = this.input_state.just_released;
-            const prev_keys = this.input_state.prev_keys;
-
-            just_pressed.clear();
-            just_released.clear();
-
-            for (const key of this.input_state.keys) {
-                if (!prev_keys.has(key)) {
-                    just_pressed.add(key);
-                }
-            }
-
-            for (const key of prev_keys) {
-                if (!this.input_state.keys.has(key)) {
-                    just_released.add(key);
-                }
-            }
-
-            prev_keys.clear();
-            for (const key of this.input_state.keys) {
-                prev_keys.add(key);
-            }
-
-            this.input_state.keys_changed = false;
+    private _update_key_transitions(): void {
+        if (!this.input_state.keys_changed && this.input_state.just_pressed.size === 0 && this.input_state.just_released.size === 0) {
+            return;
         }
 
-        // reset wheel delta
+        const just_pressed = this.input_state.just_pressed;
+        const just_released = this.input_state.just_released;
+        const prev_keys = this.input_state.prev_keys;
+
+        just_pressed.clear();
+        just_released.clear();
+
+        for (const key of this.input_state.keys) {
+            if (!prev_keys.has(key)) {
+                just_pressed.add(key);
+            }
+        }
+
+        for (const key of prev_keys) {
+            if (!this.input_state.keys.has(key)) {
+                just_released.add(key);
+            }
+        }
+
+        prev_keys.clear();
+        for (const key of this.input_state.keys) {
+            prev_keys.add(key);
+        }
+
+        this.input_state.keys_changed = false;
+    }
+
+    private _reset_wheel(): void {
         this.input_state.cursor.delta_y = 0;
         this.input_state.cursor.delta_x = 0;
+    }
 
+    private _update_fps(current_time: number): void {
         this.frame_count++;
-
         if (current_time - this.last_fps_update >= 1000) {
             this.fps = Math.round((this.frame_count * 1000) / (current_time - this.last_fps_update));
             this.frame_count = 0;
             this.last_fps_update = current_time;
         }
-    }
-
-    destroy(): void {
-        unregister_ui(this);
     }
 }
