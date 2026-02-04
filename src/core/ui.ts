@@ -3,6 +3,13 @@ import type { Renderer } from "../renderer/renderer.ts";
 import { CanvasRenderer } from "../renderer/canvas.ts";
 import { register_ui, unregister_ui, type EventData } from "./events.ts";
 import { create_input_state, type InputState } from "./input.ts";
+import { BoxWidget } from "../widgets/box.ts";
+import { TextWidget } from "../widgets/text.ts";
+import { ButtonWidget } from "../widgets/button.ts";
+import { ImageWidget } from "../widgets/image.ts";
+import { FlexLayout, type FlexAlign, type FlexDirection, type FlexJustify } from "../layout/flex.ts";
+import { FreeLayout } from "../layout/free.ts";
+import type { Color } from "../style/color.ts";
 
 export class UI {
     renderer: Renderer;
@@ -21,6 +28,8 @@ export class UI {
     current_height: number;
     viewport_dirty: boolean;
     input_state: InputState;
+    continuous_render: boolean;
+    debug_overlay_enabled: boolean;
     auto_resize_root: boolean;
 
     constructor(renderer: Renderer) {
@@ -45,6 +54,8 @@ export class UI {
         this.current_height = 0;
         this.viewport_dirty = true;
         this.input_state = create_input_state();
+        this.continuous_render = false;
+        this.debug_overlay_enabled = false;
         this.auto_resize_root = false;
 
         // bind event handlers to preserve this context
@@ -146,22 +157,189 @@ export class UI {
         return this.input_state;
     }
 
+    set_continuous_render(value: boolean): void {
+        this.continuous_render = value;
+        if (value) {
+            this.should_render = true;
+        }
+    }
+
+    request_render(): void {
+        this.should_render = true;
+        this.needs_render = true;
+    }
+
+    is_key_down(key: string): boolean {
+        return this.input_state.keys.has(key);
+    }
+
+    was_key_pressed(key: string): boolean {
+        return this.input_state.just_pressed.has(key);
+    }
+
+    was_key_released(key: string): boolean {
+        return this.input_state.just_released.has(key);
+    }
+
+    get_stats(): { fps: number; frame_ms: number; dt: number } {
+        return { fps: this.fps, frame_ms: this.delta_time * 1000, dt: this.delta_time };
+    }
+
+    create_box(
+        options: {
+            w?: number;
+            h?: number;
+            bg?: Color;
+            radius?: number;
+            border?: number;
+            border_color?: Color;
+            padding?: number | [number, number, number, number];
+            parent?: any;
+        } = {}
+    ): BoxWidget {
+        const box = new BoxWidget(options.w, options.h);
+        if (options.bg) box.style.background_color(options.bg);
+        if (options.border != null) {
+            if (options.border_color) {
+                box.style.border(options.border, options.border_color);
+            } else {
+                box.style.border(options.border);
+            }
+        }
+        if (options.radius != null) box.style.border_radius(options.radius);
+        if (options.padding != null) {
+            if (Array.isArray(options.padding)) {
+                box.style.padding(options.padding[0], options.padding[1], options.padding[2], options.padding[3]);
+            } else {
+                box.style.padding(options.padding);
+            }
+        }
+        if (options.parent && options.parent.add_children) {
+            options.parent.add_children(box);
+        }
+        return box;
+    }
+
+    create_text(
+        options: {
+            text?: string;
+            font?: string;
+            size?: number;
+            color?: Color;
+            align?: "left" | "center" | "right" | "start" | "end";
+            baseline?: "alphabetic" | "top" | "hanging" | "middle" | "ideographic" | "bottom";
+            parent?: any;
+        } = {}
+    ): TextWidget {
+        const text = new TextWidget(options.text);
+        if (options.font || options.size || options.color) {
+            text.style.font(options.font || "Arial", options.size || 14, options.color || { r: 255, g: 255, b: 255, a: 255 });
+        }
+        if (options.align) text.style.text_align(options.align);
+        if (options.baseline) text.style.text_baseline(options.baseline);
+        if (options.parent && options.parent.add_children) {
+            options.parent.add_children(text);
+        }
+        return text;
+    }
+
+    create_button(
+        options: {
+            text?: string;
+            w?: number;
+            h?: number;
+            on_click?: (node: any) => void;
+            parent?: any;
+        } = {}
+    ): ButtonWidget {
+        const btn = new ButtonWidget(options.text, options.w, options.h);
+        if (options.on_click) btn.on_click(options.on_click as any);
+        if (options.parent && options.parent.add_children) {
+            options.parent.add_children(btn);
+        }
+        return btn;
+    }
+
+    create_image(options: { src?: string; w?: number; h?: number; parent?: any } = {}): ImageWidget {
+        const image = new ImageWidget(options.src, options.w, options.h);
+        if (options.parent && options.parent.add_children) {
+            options.parent.add_children(image);
+        }
+        return image;
+    }
+
+    create_flex(
+        options: {
+            w?: number;
+            h?: number;
+            direction?: FlexDirection;
+            gap?: number;
+            wrap?: boolean;
+            justify?: FlexJustify;
+            align?: FlexAlign;
+            parent?: any;
+        } = {}
+    ): FlexLayout {
+        const flex = new FlexLayout(options.w, options.h);
+        if (options.direction) flex.set_direction(options.direction);
+        if (options.gap != null) flex.set_gap(options.gap);
+        if (options.wrap != null) flex.set_wrap(options.wrap);
+        if (options.justify) flex.set_justify(options.justify);
+        if (options.align) flex.set_align(options.align);
+        if (options.parent && options.parent.add_children) {
+            options.parent.add_children(flex);
+        }
+        return flex;
+    }
+
+    create_free(options: { w?: number; h?: number; parent?: any } = {}): FreeLayout {
+        const free = new FreeLayout(options.w, options.h);
+        if (options.parent && options.parent.add_children) {
+            options.parent.add_children(free);
+        }
+        return free;
+    }
+
     on_mouse_move(data: EventData): void {
-        if (data.x != undefined) this.input_state.cursor.x = data.x;
-        if (data.y != undefined) this.input_state.cursor.y = data.y;
+        let changed = false;
+        if (data.x != undefined && data.x !== this.input_state.cursor.x) {
+            this.input_state.cursor.x = data.x;
+            changed = true;
+        }
+        if (data.y != undefined && data.y !== this.input_state.cursor.y) {
+            this.input_state.cursor.y = data.y;
+            changed = true;
+        }
+        if (changed) this.request_render();
     }
 
     on_wheel(data: EventData): void {
-        if (data.delta_y != undefined) this.input_state.cursor.delta_y = data.delta_y;
-        if (data.delta_x != undefined) this.input_state.cursor.delta_x = data.delta_x;
+        let changed = false;
+        if (data.delta_y != undefined && data.delta_y !== 0) {
+            this.input_state.cursor.delta_y = data.delta_y;
+            changed = true;
+        }
+        if (data.delta_x != undefined && data.delta_x !== 0) {
+            this.input_state.cursor.delta_x = data.delta_x;
+            changed = true;
+        }
+        if (changed) this.request_render();
     }
 
     on_key_press(data: EventData): void {
-        if (data.key) this.input_state.keys.add(data.key);
+        if (data.key && !this.input_state.keys.has(data.key)) {
+            this.input_state.keys.add(data.key);
+            this.input_state.keys_changed = true;
+            this.request_render();
+        }
     }
 
     on_key_release(data: EventData): void {
-        if (data.key) this.input_state.keys.delete(data.key);
+        if (data.key && this.input_state.keys.has(data.key)) {
+            this.input_state.keys.delete(data.key);
+            this.input_state.keys_changed = true;
+            this.request_render();
+        }
     }
 
     on_resize(data: EventData): void {
@@ -174,8 +352,11 @@ export class UI {
     }
 
     on_blur(): void {
-        this.input_state.keys.clear();
-        this.should_render = true;
+        if (this.input_state.keys.size > 0) {
+            this.input_state.keys.clear();
+            this.input_state.keys_changed = true;
+        }
+        this.request_render();
     }
 
     _collect_all_nodes(): void {
@@ -243,6 +424,12 @@ export class UI {
 
     async render(current_time: number): Promise<void> {
         const viewport_changed = this.update_viewport();
+        if (this.continuous_render) {
+            this.should_render = true;
+        }
+
+        // update before render so state changes apply in the same frame
+        this.update(current_time);
 
         // recollect nodes only when tree structure changed
         if (this.nodes_changed) {
@@ -267,8 +454,6 @@ export class UI {
                 node.is_dirty = false;
             }
         }
-
-        this.update(current_time);
     }
 
     update(current_time: number): void {
@@ -285,6 +470,35 @@ export class UI {
         input.focused_node = this._hit_test_recursive(this.root, 0, 0, input.cursor.x, input.cursor.y);
 
         this.root.update_recursive(this.delta_time);
+
+        // update key transitions only when key state changes
+        if (this.input_state.keys_changed || this.input_state.just_pressed.size > 0 || this.input_state.just_released.size > 0) {
+            const just_pressed = this.input_state.just_pressed;
+            const just_released = this.input_state.just_released;
+            const prev_keys = this.input_state.prev_keys;
+
+            just_pressed.clear();
+            just_released.clear();
+
+            for (const key of this.input_state.keys) {
+                if (!prev_keys.has(key)) {
+                    just_pressed.add(key);
+                }
+            }
+
+            for (const key of prev_keys) {
+                if (!this.input_state.keys.has(key)) {
+                    just_released.add(key);
+                }
+            }
+
+            prev_keys.clear();
+            for (const key of this.input_state.keys) {
+                prev_keys.add(key);
+            }
+
+            this.input_state.keys_changed = false;
+        }
 
         // reset wheel delta
         this.input_state.cursor.delta_y = 0;

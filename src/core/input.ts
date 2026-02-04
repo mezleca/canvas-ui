@@ -2,6 +2,10 @@ import type { Node } from "./node.ts";
 
 export type InputState = {
     keys: Set<string>;
+    prev_keys: Set<string>;
+    just_pressed: Set<string>;
+    just_released: Set<string>;
+    keys_changed: boolean;
     cursor: {
         x: number;
         y: number;
@@ -17,6 +21,10 @@ export type InputState = {
 
 export const create_input_state = (): InputState => ({
     keys: new Set(),
+    prev_keys: new Set(),
+    just_pressed: new Set(),
+    just_released: new Set(),
+    keys_changed: false,
     cursor: { x: 0, y: 0, delta_y: 0, delta_x: 0 },
     screen: {
         w: typeof window != "undefined" ? window.innerWidth : 800,
