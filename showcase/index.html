@@ -3,7 +3,7 @@
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>canvas-ui</title>
+        <title>canvas-ui | showcase</title>
         <style>
             * {
                 margin: 0;
@@ -12,17 +12,39 @@
             }
 
             body {
-                overflow: hidden;
-                background: #0a0a0a;
+                background: #1a1a1a;
                 font-family: system-ui;
+                color: #e5e5e5;
+                min-height: 100vh;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                padding: 24px;
             }
 
-            canvas {
-                display: block;
+            .content {
+                text-align: center;
+            }
+
+            h1 {
+                font-size: 20px;
+                margin-bottom: 12px;
+                text-transform: lowercase;
+            }
+
+            a {
+                color: #e5e5e5;
+                text-decoration: underline;
+                font-size: 14px;
+                margin: 0 8px;
             }
         </style>
     </head>
     <body>
-        <script type="module" src="./demo.ts"></script>
+        <div class="content">
+            <h1>canvas ui showcase</h1>
+            <a href="/game/index.html">game</a>
+            <a href="/layout/index.html">layout</a>
+        </div>
     </body>
 </html>
