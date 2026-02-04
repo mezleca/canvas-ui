@@ -566,15 +566,21 @@ const update_world_nodes = (bounds: { x: number; y: number; w: number; h: number
     }
 };
 
-game_view.on("update", (node: any, dt: number) => {
+game_view.on("update", (node: any, dt: number = 0) => {
     if (!node || !node.get_input_state) return;
 
     const input = node.get_input_state();
-    const bounds = game_view.get_content_bounds();
-
-    if (game_view.w !== root.w || game_view.h !== root.h) {
-        game_view.set_size(root.w, root.h);
+    const screen = input.screen;
+    if (root.w !== screen.w || root.h !== screen.h) {
+        ui.set_root_fullscreen();
     }
+
+    if (game_view.w !== screen.w || game_view.h !== screen.h) {
+        game_view.set_size(screen.w, screen.h);
+        game_view.set_position(0, 0);
+    }
+
+    const bounds = game_view.get_content_bounds();
 
     const escape_now = input.keys.has("Escape");
     if (escape_now && !escape_down && !won && !game_over) {

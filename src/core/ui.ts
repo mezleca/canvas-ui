@@ -19,7 +19,10 @@ export class UI {
     fps: number;
     last_fps_update: number;
     frame_count: number;
-    all_nodes: Set<Node>;
+    time_smoothing: number;
+    smoothed_delta: number;
+    internal_time: number;
+    all_nodes: Node[];
     should_render: boolean;
     needs_render: boolean;
     nodes_changed: boolean;
@@ -43,9 +46,12 @@ export class UI {
         this.fps = 0;
         this.last_fps_update = 0;
         this.frame_count = 0;
+        this.time_smoothing = 0.1;
+        this.smoothed_delta = 0;
+        this.internal_time = 0;
         this.root = new Node();
         this.root.ui = this;
-        this.all_nodes = new Set();
+        this.all_nodes = [];
         this.should_render = false;
         this.needs_render = true;
         this.nodes_changed = false;
@@ -77,6 +83,12 @@ export class UI {
         }
 
         this.auto_resize_root = false;
+    }
+
+    set_root_fullscreen(): void {
+        this.root.set_position(0, 0);
+        this.root.set_size(this.input_state.screen.w, this.input_state.screen.h);
+        this.root.mark_dirty_recursive();
     }
 
     set_root(node: Node): void {
@@ -183,6 +195,17 @@ export class UI {
 
     get_stats(): { fps: number; frame_ms: number; dt: number } {
         return { fps: this.fps, frame_ms: this.delta_time * 1000, dt: this.delta_time };
+    }
+
+    get_time(): number {
+        return this.internal_time;
+    }
+
+    set_time_smoothing(alpha: number): void {
+        this.time_smoothing = Math.max(0, Math.min(1, alpha));
+        if (this.time_smoothing === 0) {
+            this.smoothed_delta = 0;
+        }
     }
 
     create_box(
@@ -360,12 +383,12 @@ export class UI {
     }
 
     _collect_all_nodes(): void {
-        this.all_nodes.clear();
+        this.all_nodes.length = 0;
         this._collect_recursive(this.root);
     }
 
     _collect_recursive(node: Node): void {
-        this.all_nodes.add(node);
+        this.all_nodes.push(node);
         const children = node.children;
         for (let i = 0; i < children.length; i++) {
             this._collect_recursive(children[i]!);
@@ -439,10 +462,10 @@ export class UI {
 
         if (this.should_render || this.needs_render || viewport_changed) {
             this.renderer.clear();
-            this.root.render(this.renderer, this.delta_time);
+            this.root.render(this.renderer, this.internal_time);
 
             if (this.renderer.cleanup_unused) {
-                this.renderer.cleanup_unused(Array.from(this.all_nodes));
+                this.renderer.cleanup_unused(this.all_nodes);
             }
 
             this.should_render = false;
@@ -450,8 +473,8 @@ export class UI {
 
             // clear dirty flags
             const nodes = this.all_nodes;
-            for (const node of nodes) {
-                node.is_dirty = false;
+            for (let i = 0; i < nodes.length; i++) {
+                nodes[i]!.is_dirty = false;
             }
         }
     }
@@ -460,10 +483,21 @@ export class UI {
         this.delta_time = (current_time - this.last_time) / 1000;
         this.last_time = current_time;
 
-        // skip if delta time is too high (prevents jumps after tab focus)
+        // clamp delta time to avoid large jumps after tab focus
         if (this.delta_time > 0.1) {
-            return;
+            this.delta_time = 0.1;
         }
+
+        if (this.time_smoothing > 0) {
+            if (this.smoothed_delta === 0) {
+                this.smoothed_delta = this.delta_time;
+            } else {
+                this.smoothed_delta += (this.delta_time - this.smoothed_delta) * this.time_smoothing;
+            }
+            this.delta_time = this.smoothed_delta;
+        }
+
+        this.internal_time += this.delta_time;
 
         // update focus first (hit test)
         const input = this.input_state;

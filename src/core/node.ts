@@ -360,7 +360,7 @@ export class Node {
     }
 
     // event helpers
-    on(event_name: string, callback: (node: Node) => void): this {
+    on(event_name: string, callback: (node: Node, dt?: number) => void): this {
         this.events.set(event_name, callback);
         return this;
     }
