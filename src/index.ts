@@ -30,3 +30,5 @@ export { TextWidget } from "./widgets/text.ts";
 export { BoxWidget } from "./widgets/box.ts";
 export { SpacerWidget } from "./widgets/spacer.ts";
 export { ImageWidget } from "./widgets/image.ts";
+export { CheckboxWidget } from "./widgets/checkbox.ts";
+export { SliderWidget } from "./widgets/slider.ts";
