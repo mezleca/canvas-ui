@@ -1,4 +1,18 @@
-import { CanvasRenderer, UI, FlexLayout, TextWidget, BoxWidget, ImageWidget } from "../../index.ts";
+import {
+    CanvasRenderer,
+    UI,
+    FlexLayout,
+    ButtonWidget,
+    TextWidget,
+    BoxWidget,
+    ImageWidget,
+    create_box,
+    create_text,
+    create_button,
+    create_image,
+    create_flex,
+    create_free
+} from "../../index.ts";
 
 import cat_img from "../../static/cat.png";
 
@@ -21,12 +35,12 @@ const rainbow = (t: number) => {
     return color(r, g, b);
 };
 
-const root = ui.create_flex({ w: 1200, h: 800, direction: "column", wrap: false });
+const root = create_flex({ w: 1200, h: 800, direction: "column", wrap: false });
 root.set_resize({ width: true, height: true });
 root.style.background_color(color(26, 26, 26));
 root.style.padding(0);
 
-const game_view = ui.create_free({ w: 1200, h: 800 });
+const game_view = create_free({ w: 1200, h: 800 });
 game_view.style.background_color(color(24, 24, 24));
 game_view.style.border(2, color(40, 40, 40));
 game_view.style.border_radius(6);
@@ -240,105 +254,106 @@ add_enemy(platforms[5]!, 140);
 add_enemy(platforms[7]!, 120);
 add_enemy(platforms[8]!, 80, true);
 
-const player = ui.create_image({ src: cat_img, w: 48, h: 48 });
+const player = create_image({ src: cat_img, w: 48, h: 48 });
 player.style.border_radius(10);
 player.style.border(2, color(40, 60, 90));
 player.style.background_color(color(20, 20, 24));
 
 game_view.add_children(player);
 
-const goal = ui.create_box({ w: 50, h: 80, bg: color(200, 200, 200) });
+const goal = create_box({ w: 50, h: 80, bg: color(200, 200, 200) });
 goal.style.background_color(color(200, 200, 200));
 goal.style.border_radius(0);
 
 game_view.add_children(goal);
 
-const goal_label = ui.create_text({ text: "GOAL", font: "Arial", size: 14, color: color(30, 25, 15) });
+const goal_label = create_text({ text: "GOAL", font: "Arial", size: 14, color: color(30, 25, 15) });
 
 game_view.add_children(goal_label);
 
-const hud = ui.create_flex({ w: 260, h: 120, direction: "column", wrap: false, gap: 6 });
-hud.style.background_color(color(32, 32, 32, 230));
-hud.style.border(1, color(60, 60, 60));
-hud.style.border_radius(6);
-hud.style.padding(10);
+const info_overlay = create_free({ w: 260, h: 120 });
+info_overlay.style.background_color(color(0, 0, 0, 0));
+const hud_panel = create_flex({ w: 260, h: 120, direction: "column", wrap: false, gap: 6 });
+hud_panel.style.background_color(color(32, 32, 32, 230));
+hud_panel.style.border(1, color(60, 60, 60));
+hud_panel.style.border_radius(6);
+hud_panel.style.padding(10);
+info_overlay.add_children(hud_panel);
+game_view.add_children(info_overlay);
 
-game_view.add_children(hud);
-
-const hud_title = ui.create_text({ text: "CAT PLATFORMER", font: "Arial", size: 14, color: color(230, 230, 230) });
-const lives_text = ui.create_text({ text: "Lives: 3", font: "Arial", size: 12, color: color(200, 200, 200) });
-const progress_text = ui.create_text({ text: "Progress: 0%", font: "Arial", size: 12, color: color(180, 180, 180) });
-const fps_text = ui.create_text({ text: "FPS: 0", font: "Arial", size: 11, color: color(150, 150, 150) });
-const frame_text = ui.create_text({ text: "Frame: 0ms", font: "Arial", size: 11, color: color(140, 140, 140) });
-const hint_text = ui.create_text({
+const hud_title = create_text({ text: "CAT PLATFORMER", font: "Arial", size: 14, color: color(230, 230, 230) });
+const lives_text = create_text({ text: "Lives: 3", font: "Arial", size: 12, color: color(200, 200, 200) });
+const progress_text = create_text({ text: "Progress: 0%", font: "Arial", size: 12, color: color(180, 180, 180) });
+const fps_text = create_text({ text: "FPS: 0", font: "Arial", size: 11, color: color(150, 150, 150) });
+const frame_text = create_text({ text: "Frame: 0ms", font: "Arial", size: 11, color: color(140, 140, 140) });
+const hint_text = create_text({
     text: "Move: A/D or arrows | Jump: Space | Pause: Esc",
     font: "Arial",
     size: 11,
     color: color(140, 140, 140)
 });
 
-const energy_bar = ui.create_box({ w: 220, h: 10, bg: color(150, 150, 150), radius: 6 });
-const energy_bar_bg = ui.create_box({ w: 220, h: 10, bg: color(20, 20, 20), radius: 6, border: 1, border_color: color(70, 70, 70) });
+const energy_bar = create_box({ w: 220, h: 10, bg: color(150, 150, 150), radius: 6 });
+const energy_bar_bg = create_box({ w: 220, h: 10, bg: color(20, 20, 20), radius: 6, border: 1, border_color: color(70, 70, 70) });
 
-const energy_wrap = ui.create_free({ w: 220, h: 14 });
+const energy_wrap = create_free({ w: 220, h: 14 });
+energy_wrap.style.background_color(color(0, 0, 0, 0));
+energy_wrap.style.border_radius(6);
 energy_wrap.add_children(energy_bar_bg, energy_bar);
 
-hud.add_children(hud_title, lives_text, progress_text, fps_text, frame_text, energy_wrap, hint_text);
+hud_panel.add_children(hud_title, lives_text, progress_text, fps_text, frame_text, energy_wrap, hint_text);
 
-const pause_overlay = ui.create_free({ w: 1200, h: 800 });
-pause_overlay.style.background_color(color(0, 0, 0, 170));
-pause_overlay.set_visible(false);
+const menu_overlay = create_free({ w: 1200, h: 800 });
+menu_overlay.style.background_color(color(0, 0, 0, 170));
+menu_overlay.style.z_index(1000);
+menu_overlay.set_visible(false);
 
-game_view.add_children(pause_overlay);
+const menu_panel = create_flex({ w: 340, h: 230, direction: "column", align: "center", justify: "center", wrap: false, gap: 12 });
+menu_panel.style.background_color(color(38, 38, 38));
+menu_panel.style.border(2, color(90, 90, 90));
+menu_panel.style.border_radius(12);
+menu_panel.style.padding(18);
 
-const pause_panel = ui.create_flex({ w: 340, h: 210, direction: "column", align: "center", justify: "center", wrap: false, gap: 12 });
-pause_panel.style.background_color(color(38, 38, 38));
-pause_panel.style.border(2, color(70, 70, 70));
-pause_panel.style.border_radius(12);
-pause_panel.style.padding(18);
+const menu_title = create_text({ text: "", font: "Arial", size: 18, color: color(230, 230, 230) });
+const menu_hint = create_text({ text: "", font: "Arial", size: 12, color: color(170, 170, 170) });
+menu_hint.set_visible(false);
 
-const pause_title = ui.create_text({ text: "Paused", font: "Arial", size: 18, color: color(230, 230, 230) });
-const resume_button = ui.create_button({ text: "Resume" });
+const menu_button_primary = create_button({ text: "" });
+const menu_button_secondary = create_button({ text: "" });
+const menu_buttons = [menu_button_primary, menu_button_secondary];
 
-pause_panel.add_children(pause_title, resume_button);
-pause_overlay.add_children(pause_panel);
+menu_panel.add_children(menu_title, menu_hint, menu_button_primary, menu_button_secondary);
+menu_overlay.add_children(menu_panel);
+game_view.add_children(menu_overlay);
 
-const win_overlay = ui.create_free({ w: 1200, h: 800 });
-win_overlay.style.background_color(color(0, 0, 0, 170));
-win_overlay.set_visible(false);
+const set_menu = (options: { title: string; hint?: string; buttons: string[] }) => {
+    menu_title.set_text(options.title);
 
-game_view.add_children(win_overlay);
+    if (options.hint) {
+        menu_hint.set_visible(true);
+        menu_hint.set_text(options.hint);
+    } else {
+        menu_hint.set_visible(false);
+        menu_hint.set_text("");
+    }
 
-const win_panel = ui.create_flex({ w: 340, h: 230, direction: "column", align: "center", justify: "center", wrap: false, gap: 12 });
-win_panel.style.background_color(color(38, 38, 38));
-win_panel.style.border(2, color(90, 90, 90));
-win_panel.style.border_radius(12);
-win_panel.style.padding(18);
+    for (let i = 0; i < menu_buttons.length; i++) {
+        const label = options.buttons[i];
+        const btn = menu_buttons[i]!;
+        if (label) {
+            btn.set_visible(true);
+            btn.set_text(label);
+        } else {
+            btn.set_visible(false);
+            btn.set_text("");
+        }
+    }
+};
 
-const win_title = ui.create_text({ text: "You made it!", font: "Arial", size: 18, color: color(230, 230, 230) });
-const restart_button = ui.create_button({ text: "Back to start" });
-const win_hint = ui.create_text({ text: "Returning to start in 3s", font: "Arial", size: 12, color: color(170, 170, 170) });
-
-win_panel.add_children(win_title, win_hint, restart_button);
-win_overlay.add_children(win_panel);
-
-const game_over_overlay = ui.create_free({ w: 1200, h: 800 });
-game_over_overlay.style.background_color(color(0, 0, 0, 180));
-game_over_overlay.set_visible(false);
-
-game_view.add_children(game_over_overlay);
-
-const game_over_panel = ui.create_flex({ w: 340, h: 230, direction: "column", align: "center", justify: "center", wrap: false, gap: 12 });
-game_over_panel.style.background_color(color(38, 32, 34));
-game_over_panel.style.border(2, color(110, 90, 90));
-game_over_panel.style.border_radius(12);
-game_over_panel.style.padding(18);
-
-const game_over_title = ui.create_text({ text: "Game over", font: "Arial", size: 18, color: color(230, 200, 200) });
-const retry_button = ui.create_button({ text: "Try again" });
-
-game_over_panel.add_children(game_over_title, retry_button);
-game_over_overlay.add_children(game_over_panel);
+const resume_button = menu_button_primary;
+const restart_button = menu_button_primary;
+const retry_button = menu_button_primary;
+const win_hint = menu_hint;
 
 const player_state = {
     x: 80,
@@ -375,7 +390,12 @@ const fixed_step = 1 / 60;
 const set_paused = (value: boolean) => {
     if (paused === value) return;
     paused = value;
-    pause_overlay.set_visible(paused);
+    if (paused) {
+        set_menu({ title: "Paused", buttons: ["Resume"] });
+        menu_overlay.set_visible(true);
+    } else {
+        menu_overlay.set_visible(false);
+    }
 };
 
 const reset_enemies = () => {
@@ -412,8 +432,7 @@ const restart_game = () => {
     won = false;
     game_over = false;
     set_paused(false);
-    win_overlay.set_visible(false);
-    game_over_overlay.set_visible(false);
+    menu_overlay.set_visible(false);
     reset_player(true);
     win_timer = 0;
 };
@@ -478,7 +497,7 @@ const emit_float_text = (x: number, y: number, text: string, tint: { r: number; 
 };
 
 const update_hud = (bounds: { x: number; y: number; w: number; h: number }) => {
-    hud.set_position(bounds.x + 16, bounds.y + 16);
+    info_overlay.set_position(bounds.x + 16, bounds.y + 16);
 
     lives_text.set_text(`Lives: ${player_state.lives}`);
 
@@ -495,23 +514,14 @@ const update_hud = (bounds: { x: number; y: number; w: number; h: number }) => {
 };
 
 const update_overlays = (bounds: { x: number; y: number; w: number; h: number }) => {
-    const overlays = [pause_overlay, win_overlay, game_over_overlay];
-    for (const overlay of overlays) {
-        if (overlay.w !== bounds.w || overlay.h !== bounds.h) {
-            overlay.set_size(bounds.w, bounds.h);
-        }
-        overlay.set_position(bounds.x, bounds.y);
+    if (menu_overlay.w !== bounds.w || menu_overlay.h !== bounds.h) {
+        menu_overlay.set_size(bounds.w, bounds.h);
     }
+    menu_overlay.set_position(bounds.x, bounds.y);
 
-    const center_panel = (panel: FlexLayout) => {
-        const x = snap(bounds.x + (bounds.w - panel.w) / 2);
-        const y = snap(bounds.y + (bounds.h - panel.h) / 2);
-        panel.set_position(x, y);
-    };
-
-    center_panel(pause_panel);
-    center_panel(win_panel);
-    center_panel(game_over_panel);
+    const x = snap(bounds.x + (bounds.w - menu_panel.w) / 2);
+    const y = snap(bounds.y + (bounds.h - menu_panel.h) / 2);
+    menu_panel.set_position(x, y);
 };
 
 const update_world_nodes = (bounds: { x: number; y: number; w: number; h: number }) => {
@@ -621,6 +631,7 @@ game_view.on("update", (node: any, dt: number = 0) => {
     accumulator = Math.min(accumulator + dt, 0.2);
     let jump_used = false;
 
+    // fixed-step loop keeps physics consistent regardless of render rate
     while (accumulator >= fixed_step) {
         player_state.vx = 0;
         if (left) player_state.vx -= physics.move_speed;
@@ -727,7 +738,8 @@ game_view.on("update", (node: any, dt: number = 0) => {
 
                 if (player_state.lives <= 0) {
                     game_over = true;
-                    game_over_overlay.set_visible(true);
+                    set_menu({ title: "Game over", buttons: ["Try again"] });
+                    menu_overlay.set_visible(true);
                 }
             }
         }
@@ -740,7 +752,8 @@ game_view.on("update", (node: any, dt: number = 0) => {
 
                 if (player_state.lives <= 0) {
                     game_over = true;
-                    game_over_overlay.set_visible(true);
+                    set_menu({ title: "Game over", buttons: ["Try again"] });
+                    menu_overlay.set_visible(true);
                 }
             }
         }
@@ -749,7 +762,8 @@ game_view.on("update", (node: any, dt: number = 0) => {
         const goal_y = last_platform.y - 70;
         if (aabb(player_state.x, player_state.y, player_state.w, player_state.h, goal_x, goal_y, goal.w, goal.h)) {
             won = true;
-            win_overlay.set_visible(true);
+            set_menu({ title: "You made it!", hint: "Returning to start in 3s", buttons: ["Back to start"] });
+            menu_overlay.set_visible(true);
             win_timer = 3;
         }
 
