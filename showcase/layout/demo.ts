@@ -12,6 +12,7 @@ import {
     create_flex,
     create_free
 } from "../../index.ts";
+import { create_line, create_block } from "../../src/helpers/factory.ts";
 
 import cat_img from "../../static/cat.png";
 import ex_audio from "../../static/ex.mp3";
@@ -259,12 +260,15 @@ anim_box.on("update", (node: any) => {
 });
 
 dynamic_container.add_children(anim_box);
+
 controls.add_children(btn_add, btn_remove, btn_cat);
 panel4.add_children(controls, dynamic_container);
+
 main.add_children(panel4);
 
 // panel 5: ui helpers + controls
 const panel5 = create_flex({ w: 300, h: 760, direction: "column", wrap: false, gap: 12 });
+
 panel5.style.padding(15);
 panel5.style.background_color({ r: 35, g: 35, b: 40, a: 255 });
 panel5.style.border_radius(8);
@@ -272,43 +276,120 @@ panel5.style.border_radius(8);
 create_title("ui helpers", panel5);
 
 const helper_row = create_flex({ w: 260, h: 40, direction: "row", gap: 10, align: "center" });
+
 helper_row.style.background_color({ r: 50, g: 50, b: 55, a: 255 });
 helper_row.style.border_radius(6);
 helper_row.style.padding(8);
 
 create_text({ text: "factory text", size: 12, color: { r: 180, g: 180, b: 180, a: 255 }, parent: helper_row });
 create_box({ w: 16, h: 16, bg: { r: 90, g: 140, b: 200, a: 255 }, radius: 3, parent: helper_row });
+create_line({
+    points: [
+        { x: 0, y: 0 },
+        { x: 0, y: 50 }
+    ],
+    color: { r: 255, g: 25, b: 147, a: 255 },
+    size: 2,
+    parent: helper_row
+});
 
-panel5.add_children(helper_row);
+const line_no_resize = create_flex({ w: 260, h: 50, direction: "row", gap: 10, align: "center" });
+line_no_resize.style.background_color({ r: 50, g: 50, b: 55, a: 255 });
+line_no_resize.style.border_radius(6);
+line_no_resize.style.padding(8);
+
+create_text({ text: "(flex) no resize", size: 11, color: { r: 180, g: 180, b: 180, a: 255 }, parent: line_no_resize });
+create_box({ w: 12, h: 12, bg: { r: 90, g: 140, b: 200, a: 255 }, radius: 2, parent: line_no_resize });
+create_line({
+    points: [
+        { x: 0, y: 0 },
+        { x: 0, y: 90 },
+        { x: 40, y: 50 },
+        { x: 0, y: 0 }
+    ],
+    color: { r: 255, g: 25, b: 147, a: 255 },
+    size: 2,
+    parent: line_no_resize
+});
+
+const line_with_resize = create_flex({ w: 260, h: 50, direction: "row", gap: 10 });
+line_with_resize.set_resize({ width: false, height: true });
+line_with_resize.style.background_color({ r: 50, g: 50, b: 55, a: 255 });
+line_with_resize.style.border_radius(6);
+line_with_resize.style.padding(8);
+
+create_text({ text: "(flex) resize", size: 11, color: { r: 180, g: 180, b: 180, a: 255 }, parent: line_with_resize });
+create_box({ w: 12, h: 12, bg: { r: 90, g: 140, b: 200, a: 255 }, radius: 2, parent: line_with_resize });
+create_line({
+    points: [
+        { x: 0, y: 0 },
+        { x: 0, y: 90 },
+        { x: 40, y: 50 },
+        { x: 0, y: 0 }
+    ],
+    color: { r: 255, g: 25, b: 147, a: 255 },
+    size: 2,
+    parent: line_with_resize
+});
+
+const block_inline = create_block({ w: 260, h: 70, gap: 8, inline: true });
+block_inline.style.background_color({ r: 50, g: 50, b: 55, a: 255 });
+block_inline.style.border_radius(6);
+block_inline.style.padding(8);
+
+create_text({ text: "block inline", size: 11, color: { r: 180, g: 180, b: 180, a: 255 }, parent: block_inline });
+create_box({ w: 30, h: 14, bg: { r: 90, g: 140, b: 200, a: 255 }, radius: 2, parent: block_inline });
+create_box({ w: 24, h: 14, bg: { r: 200, g: 120, b: 140, a: 255 }, radius: 2, parent: block_inline });
+create_line({
+    points: [
+        { x: 0, y: 0 },
+        { x: 20, y: 0 },
+        { x: 12, y: 12 }
+    ],
+    color: { r: 255, g: 210, b: 80, a: 255 },
+    size: 2,
+    parent: block_inline
+});
 
 const control_row = create_flex({ w: 260, h: 80, direction: "row", gap: 12, align: "center", wrap: true });
+
 control_row.style.background_color({ r: 50, g: 50, b: 55, a: 255 });
 control_row.style.border_radius(6);
 control_row.style.padding(10);
 
 const checkbox = new CheckboxWidget(18);
+
 checkbox.on_change((value) => console.log("checkbox", value));
 control_row.add_children(checkbox);
 
 const slider = new SliderWidget(160, 10);
+
 slider.set_range(0, 100).set_step(5).set_value(50);
 slider.set_fill_color({ r: 120, g: 160, b: 200, a: 255 });
 slider.set_thumb_color({ r: 210, g: 210, b: 210, a: 255 });
 slider.on_change((value) => console.log("slider", value));
+
 control_row.add_children(slider);
 
-panel5.add_children(control_row);
 const radio_row = create_flex({ w: 260, h: 40, direction: "row", gap: 10, align: "center" });
+
 radio_row.style.background_color({ r: 50, g: 50, b: 55, a: 255 });
 radio_row.style.border_radius(6);
 radio_row.style.padding(10);
 
 const radio_a = new CheckboxWidget(16).set_radio(true, "mode");
 const radio_b = new CheckboxWidget(16).set_radio(true, "mode");
+
 radio_a.set_checked(true);
 radio_row.add_children(radio_a, radio_b);
 
+panel5.add_children(helper_row);
+panel5.add_children(line_no_resize);
+panel5.add_children(line_with_resize);
+panel5.add_children(block_inline);
+panel5.add_children(control_row);
 panel5.add_children(radio_row);
+
 main.add_children(panel5);
 
 // render loop
