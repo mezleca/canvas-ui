@@ -147,11 +147,14 @@ export class ScrollBehavior implements Behavior {
         if (this.max_scroll <= 0 || this.content_height <= this.node.h) return;
 
         const style = this.node.get_style();
-        const scrollbar_x = this.node.x + this.node.w - style.scrollbar_width.value;
+        const visual_offset = this.node.get_visual_offset();
+        const base_x = this.node.x + visual_offset.x;
+        const base_y = this.node.y + visual_offset.y;
+        const scrollbar_x = base_x + this.node.w - style.scrollbar_width.value;
         const scrollbar_id = `${this.node.id}_scrollbar_bg`;
 
         // render background track
-        renderer.render_box(scrollbar_id, scrollbar_x, this.node.y, style.scrollbar_width.value, this.node.h, {
+        renderer.render_box(scrollbar_id, scrollbar_x, base_y, style.scrollbar_width.value, this.node.h, {
             background_color: style.scrollbar_background_color,
             border_size: { value: 0 },
             border_radius: style.scrollbar_thumb_radius,
@@ -164,7 +167,7 @@ export class ScrollBehavior implements Behavior {
         const max_scroll = Math.max(1, this.content_height - this.node.h);
         const scroll_frac = this.scroll_top / max_scroll;
         const available_space = this.node.h - thumb_height;
-        const thumb_y = this.node.y + scroll_frac * available_space;
+        const thumb_y = base_y + scroll_frac * available_space;
 
         const scrollbar_thumb_id = `${this.node.id}_scrollbar_thumb`;
 
