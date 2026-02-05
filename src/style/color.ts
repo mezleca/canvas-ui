@@ -1,4 +1,5 @@
 import { StyleProperty } from "./property.ts";
+import { clamp } from "../core/math.ts";
 
 export type Color = {
     r: number;
@@ -53,7 +54,7 @@ export class ColorProperty extends StyleProperty<Color> {
 
     // linear interpolation between two colors
     static lerp(from: Color, to: Color, t: number): Color {
-        t = Math.max(0, Math.min(1, t));
+        t = clamp(t, 0, 1);
         return {
             r: Math.round(from.r + (to.r - from.r) * t),
             g: Math.round(from.g + (to.g - from.g) * t),

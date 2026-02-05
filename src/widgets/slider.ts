@@ -2,6 +2,7 @@ import { Node } from "../core/node.ts";
 import { StyleState } from "../style/state.ts";
 import type { Renderer } from "../renderer/renderer.ts";
 import type { Color } from "../style/color.ts";
+import { clamp } from "../core/math.ts";
 
 export class SliderWidget extends Node {
     min: number;
@@ -54,7 +55,7 @@ export class SliderWidget extends Node {
     }
 
     set_value(value: number): this {
-        const clamped = Math.max(this.min, Math.min(this.max, value));
+        const clamped = clamp(value, this.min, this.max);
         const snapped = this.step > 0 ? Math.round((clamped - this.min) / this.step) * this.step + this.min : clamped;
         if (this.value != snapped) {
             this.value = snapped;
@@ -98,7 +99,7 @@ export class SliderWidget extends Node {
         const local_x = cursor_x - (this.x + visual_offset.x);
         const track_w = this.w;
         const t = track_w > 0 ? local_x / track_w : 0;
-        return this.min + Math.max(0, Math.min(1, t)) * (this.max - this.min);
+        return this.min + clamp(t, 0, 1) * (this.max - this.min);
     }
 
     override update(dt: number = 0.016): void {
@@ -125,7 +126,7 @@ export class SliderWidget extends Node {
         const track_w = this.w;
         const range = this.max - this.min;
         const t = track_w > 0 && range != 0 ? (this.value - this.min) / range : 0;
-        const clamped_t = Math.max(0, Math.min(1, t));
+        const clamped_t = clamp(t, 0, 1);
         const thumb_x = this.x + clamped_t * track_w - this.thumb_size / 2;
         const thumb_y = this.y + this.h / 2 - this.thumb_size / 2;
         const thumb_id = `${this.id}_thumb`;

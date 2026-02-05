@@ -4,6 +4,7 @@ import {
     TextWidget,
     BoxWidget,
     ImageWidget,
+    clamp,
     create_box,
     create_text,
     create_button,
@@ -21,7 +22,6 @@ const ui = new UI(renderer);
 ui.set_continuous_render(true);
 
 const color = (r: number, g: number, b: number, a: number = 255) => ({ r, g, b, a });
-const clamp = (v: number, min: number, max: number) => Math.max(min, Math.min(max, v));
 const snap = (v: number) => {
     const ratio = typeof window != "undefined" ? window.devicePixelRatio || 1 : 1;
     return Math.round(v * ratio) / ratio;

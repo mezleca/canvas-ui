@@ -3,6 +3,7 @@ export { Node } from "./core/node.ts";
 export { UI } from "./core/ui.ts";
 export type { InputState } from "./core/input.ts";
 export type { EventData, UIEventHandler, UIEventTarget } from "./core/events.ts";
+export { clamp } from "./core/math.ts";
 
 // renderer
 export { BaseRenderer, type Renderer } from "./renderer/renderer.ts";

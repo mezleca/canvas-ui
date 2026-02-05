@@ -1,5 +1,6 @@
 import { StyleProperty } from "./property.ts";
 import { ColorProperty, type Color } from "./color.ts";
+import { clamp } from "../core/math.ts";
 
 export type EasingFn = (t: number) => number;
 
@@ -57,7 +58,7 @@ export class Tween {
 
         this.elapsed += dt * 1000; // convert to ms
 
-        const t = Math.min(1, this.elapsed / this.duration);
+        const t = clamp(this.elapsed / this.duration, 0, 1);
         const eased_t = this.easing(t);
 
         if (this.is_color && this.property instanceof ColorProperty) {

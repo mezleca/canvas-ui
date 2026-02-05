@@ -172,7 +172,7 @@ export class ScrollBehavior implements Behavior {
         const scroll_frac = this.scroll_top / max_scroll;
         const available_space = track_h - thumb_height;
         let thumb_y = base_y + scroll_frac * available_space;
-        thumb_y = Math.round(Math.max(base_y, Math.min(thumb_y, base_y + available_space)));
+        thumb_y = Math.round(clamp(thumb_y, base_y, base_y + available_space));
 
         const track_bottom = base_y + track_h;
         if (thumb_y + thumb_height > track_bottom) {

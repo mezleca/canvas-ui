@@ -1,4 +1,5 @@
 import { Node } from "./node.ts";
+import { clamp } from "./math.ts";
 import type { Renderer } from "../renderer/renderer.ts";
 import { register_ui, unregister_ui, type EventData } from "./events.ts";
 import { create_input_state, type InputState } from "./input.ts";
@@ -185,7 +186,7 @@ export class UI {
     }
 
     set_time_smoothing(alpha: number): void {
-        this.time_smoothing = Math.max(0, Math.min(1, alpha));
+        this.time_smoothing = clamp(alpha, 0, 1);
         if (this.time_smoothing === 0) {
             this.smoothed_delta = 0;
         }
