@@ -61,6 +61,17 @@ export abstract class BaseLayout extends Node {
         return { width: parent_bounds.w - this.x, height: parent_bounds.h - this.y };
     }
 
+    get_clip_bounds(): { x: number; y: number; w: number; h: number } {
+        const style = this.get_style();
+        const border = style.border_size.value || 0;
+        return {
+            x: this.x + border,
+            y: this.y + border,
+            w: this.w - border * 2,
+            h: this.h - border * 2
+        };
+    }
+
     protected clamp_with_style(value: number, min_value: number | null, max_value: number | null): number {
         let result = Math.max(min_value || 0, value);
         if (max_value !== null) result = Math.min(result, max_value);
@@ -73,6 +84,7 @@ export abstract class BaseLayout extends Node {
         }
 
         const content_bounds = this.get_content_bounds();
+        const clip_bounds = this.get_clip_bounds();
 
         // render background / border
         this.draw(renderer);
@@ -87,8 +99,8 @@ export abstract class BaseLayout extends Node {
             scroll_top = scroll.scroll_top || 0;
         }
 
-        // set clipping to content area
-        renderer.set_clip(content_bounds.x, content_bounds.y, content_bounds.w, content_bounds.h);
+        // set clipping to border box to avoid early cut-off
+        renderer.set_clip(clip_bounds.x, clip_bounds.y, clip_bounds.w, clip_bounds.h);
 
         // save and translate context for scroll offset
         renderer.push_transform();
@@ -116,16 +128,16 @@ export abstract class BaseLayout extends Node {
     }
 
     update_child_visibility(scroll_top: number): void {
-        const content_bounds = this.get_content_bounds();
-        const view_top = content_bounds.y + scroll_top;
-        const view_bottom = view_top + content_bounds.h;
+        const clip_bounds = this.get_clip_bounds();
+        const view_top = clip_bounds.y + scroll_top;
+        const view_bottom = view_top + clip_bounds.h;
 
         // buffer is 10% of viewport height, ensures smooth scrolling without popping
-        const buffer = Math.max(50, content_bounds.h * 0.1);
+        const buffer = Math.max(50, clip_bounds.h * 0.1);
 
-        const view_left = content_bounds.x;
-        const view_right = content_bounds.x + content_bounds.w;
-        const buffer_x = Math.max(50, content_bounds.w * 0.1);
+        const view_left = clip_bounds.x;
+        const view_right = clip_bounds.x + clip_bounds.w;
+        const buffer_x = Math.max(50, clip_bounds.w * 0.1);
 
         const children = this.children;
 
