@@ -5,6 +5,8 @@ import { ImageWidget } from "../widgets/image.ts";
 import { FlexLayout, type FlexAlign, type FlexDirection, type FlexJustify } from "../layout/flex.ts";
 import { FreeLayout } from "../layout/free.ts";
 import type { Color } from "../style/color.ts";
+import type { vec2d } from "../core/math.ts";
+import { LineWidget } from "../widgets/line.ts";
 
 export const create_box = (
     options: {
@@ -39,6 +41,26 @@ export const create_box = (
         options.parent.add_children(box);
     }
     return box;
+};
+
+export const create_line = (
+    options: {
+        points?: vec2d[];
+        size?: number;
+        color?: Color;
+        parent?: any;
+    } = {}
+): LineWidget => {
+    const line = new LineWidget(options.points ?? []);
+
+    line.style.border_size(options.size ?? 1);
+
+    if (options.color) line.style.background_color(options.color);
+    if (options.parent && options.parent.add_children) {
+        options.parent.add_children(line);
+    }
+
+    return line;
 };
 
 export const create_text = (

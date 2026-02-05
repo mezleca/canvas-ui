@@ -33,6 +33,7 @@ export { SpacerWidget } from "./widgets/spacer.ts";
 export { ImageWidget } from "./widgets/image.ts";
 export { CheckboxWidget } from "./widgets/checkbox.ts";
 export { SliderWidget } from "./widgets/slider.ts";
+export { LineWidget } from "./widgets/line.ts";
 
 // helpers
-export { create_box, create_text, create_button, create_image, create_flex, create_free } from "./helpers/factory.ts";
+export { create_box, create_text, create_button, create_image, create_flex, create_free, create_line } from "./helpers/factory.ts";

@@ -1,5 +1,6 @@
 import { StyleState } from "../style/state.ts";
 import type { Node } from "../core/node.ts";
+import type { vec2d } from "../core/math.ts";
 
 // renderer defines the drawing surface api used by nodes/layouts
 export interface Renderer {
@@ -9,6 +10,7 @@ export interface Renderer {
 
     // rendering primitives
     render_box(id: string, x: number, y: number, w: number, h: number, style: StyleState): void;
+    render_line(id: string, points: vec2d[], style: StyleState, offset?: vec2d): void;
     render_text(id: string, x: number, y: number, text: string, style: StyleState): void;
     render_image(id: string, x: number, y: number, w: number, h: number, image: any, style: StyleState): void;
 
@@ -56,6 +58,7 @@ export abstract class BaseRenderer implements Renderer {
     abstract clear(): void;
     abstract render_box(id: string, x: number, y: number, w: number, h: number, style: StyleState): void;
     abstract render_text(id: string, x: number, y: number, text: string, style: StyleState): void;
+    abstract render_line(id: string, points: vec2d[], style: StyleState, offset?: vec2d): void;
     abstract render_image(id: string, x: number, y: number, w: number, h: number, image: any, style: StyleState): void;
     abstract measure_text(text: string, style: StyleState): { width: number; height: number };
     abstract set_clip(x: number, y: number, w: number, h: number): void;

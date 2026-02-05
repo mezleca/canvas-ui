@@ -1,5 +1,6 @@
 import { BaseRenderer } from "./renderer.ts";
 import { StyleState } from "../style/state.ts";
+import type { vec2d } from "../core/math.ts";
 
 export class CanvasRenderer extends BaseRenderer {
     canvas: HTMLCanvasElement | null;
@@ -46,6 +47,36 @@ export class CanvasRenderer extends BaseRenderer {
     clear(): void {
         if (!this.ctx || !this.canvas) return;
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    }
+
+    render_line(id: string, points: vec2d[], style: StyleState, offset: vec2d = { x: 0, y: 0 }): void {
+        if (!this.ctx) return;
+        if (points.length < 2) return;
+
+        const ctx = this.ctx;
+
+        ctx.save();
+        ctx.beginPath();
+
+        const border_size = style.border_size.value;
+        const bg_color = style.background_color.value;
+
+        if (border_size) {
+            ctx.lineWidth = border_size;
+        }
+
+        if (bg_color) {
+            ctx.strokeStyle = `rgba(${bg_color.r}, ${bg_color.g}, ${bg_color.b}, ${bg_color.a / 255})`;
+        }
+
+        ctx.moveTo(points[0]!.x + offset.x, points[0]!.y + offset.y);
+
+        for (let i = 1; i < points.length; i++) {
+            ctx.lineTo(points[i]!.x + offset.x, points[i]!.y + offset.y);
+        }
+
+        ctx.stroke();
+        ctx.restore();
     }
 
     render_box(id: string, x: number, y: number, w: number, h: number, style: StyleState): void {
