@@ -6,6 +6,21 @@ import type { UI } from "./ui.ts";
 import { type Behavior, BEHAVIOR_TYPES } from "../behaviors/behavior.ts";
 import { StyleState } from "../style/state.ts";
 
+export type ResizeEvent = { w: number; h: number; prev_w: number; prev_h: number };
+
+export type NodeEventHandlers = {
+    update: (node: Node, dt: number) => void;
+    resize: (node: Node, info: ResizeEvent) => void;
+    click: (node: Node) => void;
+    mousedown: (node: Node) => void;
+    mouseup: (node: Node) => void;
+    mouseover: (node: Node) => void;
+    mouseleave: (node: Node) => void;
+};
+
+export type NodeEventName = keyof NodeEventHandlers;
+type NodeEventPayload<T extends NodeEventName> = Parameters<NodeEventHandlers[T]>[1];
+
 export class Node {
     id: string;
     x: number;
@@ -25,7 +40,7 @@ export class Node {
     children_order_dirty: boolean;
 
     // event system
-    private events: Map<string, (node: Node) => void>;
+    private events: Map<NodeEventName, NodeEventHandlers[NodeEventName]>;
     private hovering: boolean;
     private holding: boolean;
 
@@ -356,8 +371,7 @@ export class Node {
         this.style.update_tweens(dt);
 
         // emit update event for custom logic
-        const update_cb = this.events.get("update");
-        if (update_cb) (update_cb as any)(this, dt);
+        this._emit("update", dt);
     }
 
     update_recursive(dt: number = 0.016): void {
@@ -379,8 +393,8 @@ export class Node {
     }
 
     // event helpers
-    on(event_name: string, callback: (node: Node, dt?: number) => void): this {
-        this.events.set(event_name, callback);
+    on<T extends NodeEventName>(event_name: T, callback: NodeEventHandlers[T]): this {
+        this.events.set(event_name, callback as NodeEventHandlers[NodeEventName]);
         return this;
     }
 
@@ -399,9 +413,15 @@ export class Node {
         return this;
     }
 
-    private _emit(event_name: string): void {
+    on_resize(cb: (node: Node, info: ResizeEvent) => void): this {
+        this.events.set("resize", cb);
+        return this;
+    }
+
+    private _emit<T extends NodeEventName>(event_name: T, payload?: NodeEventPayload<T>): void {
         const cb = this.events.get(event_name);
-        if (cb) cb(this);
+        if (!cb) return;
+        (cb as any)(this, payload);
     }
 
     set_id(id: string): this {
@@ -439,9 +459,12 @@ export class Node {
 
     set_size(w: number, h: number): this {
         if (this.w != w || this.h != h) {
+            const prev_w = this.w;
+            const prev_h = this.h;
             this.w = w;
             this.h = h;
             this.mark_dirty();
+            this._emit("resize", { w, h, prev_w, prev_h });
         }
         return this;
     }

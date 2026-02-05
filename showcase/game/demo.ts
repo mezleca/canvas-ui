@@ -1,8 +1,6 @@
 import {
     CanvasRenderer,
     UI,
-    FlexLayout,
-    ButtonWidget,
     TextWidget,
     BoxWidget,
     ImageWidget,
@@ -47,6 +45,11 @@ game_view.style.border_radius(6);
 root.add_children(game_view);
 ui.set_root(root);
 ui.set_root_fullscreen();
+
+root.on_resize((node, info) => {
+    game_view.set_size(info.w, info.h);
+    game_view.set_position(0, 0);
+});
 
 type Platform = { x: number; y: number; w: number; h: number; node: BoxWidget };
 type Enemy = {
@@ -580,11 +583,6 @@ game_view.on("update", (node: any, dt: number = 0) => {
 
     const input = node.get_input_state();
     const screen = input.screen;
-    if (game_view.w !== screen.w || game_view.h !== screen.h) {
-        game_view.set_size(screen.w, screen.h);
-        game_view.set_position(0, 0);
-    }
-
     const bounds = game_view.get_content_bounds();
 
     const escape_now = input.keys.has("Escape");
