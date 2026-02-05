@@ -65,16 +65,6 @@ export class UI {
         register_ui(this);
     }
 
-    set_resize(options: { width?: boolean; height?: boolean }): void {
-        const root = this.root as any;
-
-        if (root.set_resize) {
-            root.set_resize(options);
-        }
-
-        this.auto_resize_root = false;
-    }
-
     set_root_fullscreen(value: boolean = true): void {
         this.auto_resize_root = value;
         if (!value) return;
