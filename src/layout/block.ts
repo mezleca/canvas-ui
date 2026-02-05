@@ -61,8 +61,7 @@ export class BlockLayout extends BaseLayout {
                     child.calculate(renderer);
                 }
 
-                const ignore_line_in_fixed_layout =
-                    !this.auto_resize_height && !this.auto_resize_width && child instanceof LineWidget;
+                const ignore_line_in_fixed_layout = !this.auto_resize_height && !this.auto_resize_width && child instanceof LineWidget;
                 if (ignore_line_in_fixed_layout) {
                     child.set_position(x, y);
                     continue;
