@@ -12,8 +12,6 @@ export class FlexLayout extends BaseLayout {
     align: FlexAlign;
     gap: number;
     wrap: boolean;
-    auto_resize_width: boolean;
-    auto_resize_height: boolean;
 
     private rows: Array<{
         children: Node[];
@@ -29,8 +27,6 @@ export class FlexLayout extends BaseLayout {
         this.align = "start";
         this.gap = 10;
         this.wrap = true;
-        this.auto_resize_width = false;
-        this.auto_resize_height = false;
         this.rows = [];
     }
 
@@ -64,13 +60,6 @@ export class FlexLayout extends BaseLayout {
         return this;
     }
 
-    set_resize(options: { width?: boolean; height?: boolean }): this {
-        if (options.width !== undefined) this.auto_resize_width = options.width;
-        if (options.height !== undefined) this.auto_resize_height = options.height;
-        this.mark_dirty();
-        return this;
-    }
-
     calculate(renderer: Renderer): void {
         const scroll = this.get_scroll_behavior();
         if (!this.is_dirty && !this.auto_resize_height && !this.auto_resize_width) {
@@ -87,12 +76,12 @@ export class FlexLayout extends BaseLayout {
 
         // speculative resize to match parent availability
         if (this.auto_resize_width && available_size.width > 0) {
-            const new_w = this._clamp_with_style(available_size.width, style.min_width.value, style.max_width.value);
+            const new_w = this.clamp_with_style(available_size.width, style.min_width.value, style.max_width.value);
             if (new_w != this.w) this.w = new_w;
         }
 
         if (this.auto_resize_height && available_size.height > 0) {
-            const new_h = this._clamp_with_style(available_size.height, style.min_height.value, style.max_height.value);
+            const new_h = this.clamp_with_style(available_size.height, style.min_height.value, style.max_height.value);
             if (new_h != this.h) this.h = new_h;
         }
 
@@ -263,7 +252,7 @@ export class FlexLayout extends BaseLayout {
                 required_w = total_cross_size + content_bounds.padding.left + content_bounds.padding.right + content_bounds.border * 2;
             }
 
-            let new_w = this._clamp_with_style(required_w, style.min_width.value, style.max_width.value);
+            let new_w = this.clamp_with_style(required_w, style.min_width.value, style.max_width.value);
 
             // if we have available space constraint from parent, respect it unless it's 0 (unbounded)
             if (available_size.width > 0) {
@@ -273,7 +262,7 @@ export class FlexLayout extends BaseLayout {
         }
 
         if (this.auto_resize_height) {
-            let new_h = this._clamp_with_style(this.content_height + content_bounds.border * 2, style.min_height.value, style.max_height.value);
+            let new_h = this.clamp_with_style(this.content_height + content_bounds.border * 2, style.min_height.value, style.max_height.value);
 
             // if we have available space constraint from parent, respect it unless it's 0 (unbounded)
             if (available_size.height > 0) {
@@ -303,12 +292,6 @@ export class FlexLayout extends BaseLayout {
             cross_size: 0,
             position: 0
         };
-    }
-
-    private _clamp_with_style(value: number, min_value: number | null, max_value: number | null): number {
-        let result = Math.max(min_value || 0, value);
-        if (max_value !== null) result = Math.min(result, max_value);
-        return result;
     }
 
     private _can_calculate(node: Node): node is Node & { calculate: (renderer: Renderer) => void } {

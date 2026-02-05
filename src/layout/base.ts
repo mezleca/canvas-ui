@@ -6,6 +6,8 @@ import type { Renderer } from "../renderer/renderer.ts";
 export abstract class BaseLayout extends Node {
     has_overflow: boolean;
     content_height: number;
+    auto_resize_width: boolean;
+    auto_resize_height: boolean;
     private cached_scroll: ScrollBehavior | null;
 
     constructor(w?: number, h?: number) {
@@ -14,10 +16,19 @@ export abstract class BaseLayout extends Node {
         this.h = h || 0;
         this.has_overflow = true;
         this.content_height = 0;
+        this.auto_resize_width = false;
+        this.auto_resize_height = false;
         this.cached_scroll = null;
     }
 
     abstract calculate(renderer: Renderer): void;
+
+    set_resize(options: { width?: boolean; height?: boolean }): this {
+        if (options.width !== undefined) this.auto_resize_width = options.width;
+        if (options.height !== undefined) this.auto_resize_height = options.height;
+        this.mark_dirty();
+        return this;
+    }
 
     override add_behavior(behavior: Behavior): this {
         this.behaviors.push(behavior);
@@ -48,6 +59,12 @@ export abstract class BaseLayout extends Node {
     get_available_size(): { width: number; height: number } {
         const parent_bounds = this.get_parent_bounds();
         return { width: parent_bounds.w - this.x, height: parent_bounds.h - this.y };
+    }
+
+    protected clamp_with_style(value: number, min_value: number | null, max_value: number | null): number {
+        let result = Math.max(min_value || 0, value);
+        if (max_value !== null) result = Math.min(result, max_value);
+        return result;
     }
 
     override render(renderer: Renderer, dt: number): void {
