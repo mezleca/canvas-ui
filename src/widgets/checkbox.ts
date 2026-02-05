@@ -31,7 +31,7 @@ export class CheckboxWidget extends Node {
         this.on_click(() => {
             if (this.radio) {
                 this.set_checked(true);
-                this._uncheck_group();
+                this.uncheck_group();
             } else {
                 this.set_checked(!this.checked);
             }
@@ -70,7 +70,7 @@ export class CheckboxWidget extends Node {
         return this;
     }
 
-    private _uncheck_group(): void {
+    private uncheck_group(): void {
         if (!this.group || !this.parent) return;
         for (const child of this.parent.children) {
             if (child instanceof CheckboxWidget && child !== this && child.group === this.group) {

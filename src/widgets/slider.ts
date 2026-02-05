@@ -93,7 +93,7 @@ export class SliderWidget extends Node {
         return this;
     }
 
-    private _value_from_cursor(cursor_x: number): number {
+    private value_from_cursor(cursor_x: number): number {
         const visual_offset = this.get_visual_offset();
         const local_x = cursor_x - (this.x + visual_offset.x);
         const track_w = this.w;
@@ -110,7 +110,7 @@ export class SliderWidget extends Node {
 
         if (mouse_down && (hovered || this.dragging)) {
             this.dragging = true;
-            this.set_value(this._value_from_cursor(input.cursor.x));
+            this.set_value(this.value_from_cursor(input.cursor.x));
         } else {
             this.dragging = false;
         }

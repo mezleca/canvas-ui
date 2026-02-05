@@ -67,7 +67,7 @@ export class ScrollBehavior implements Behavior {
             // handle drag (priority over wheel)
             if (this.holding_scrollbar) {
                 const delta_y = input.cursor.y - this.drag_start_y;
-                const scroll_ratio = this.max_scroll / (this.node.h - this._get_thumb_height(content_bounds.h));
+                const scroll_ratio = this.max_scroll / (this.node.h - this.get_thumb_height(content_bounds.h));
                 const new_scroll = this.drag_start_scroll + delta_y * scroll_ratio;
 
                 if (new_scroll != this.scroll_top) {
@@ -132,11 +132,11 @@ export class ScrollBehavior implements Behavior {
         return null;
     }
 
-    get_thumb_height(): number {
-        return this._get_thumb_height(this.node.get_content_bounds().h);
+    get_thumb_size(): number {
+        return this.get_thumb_height(this.node.get_content_bounds().h);
     }
 
-    private _get_thumb_height(viewport_h: number): number {
+    private get_thumb_height(viewport_h: number): number {
         if (this.content_height <= 0) return 20;
         const view_ratio = viewport_h / this.content_height;
         return Math.max(20, this.node.h * view_ratio);
@@ -159,7 +159,7 @@ export class ScrollBehavior implements Behavior {
         } as any);
 
         // render thumb
-        const thumb_height = this._get_thumb_height(this.node.get_content_bounds().h);
+        const thumb_height = this.get_thumb_height(this.node.get_content_bounds().h);
 
         const max_scroll = Math.max(1, this.content_height - this.node.h);
         const scroll_frac = this.scroll_top / max_scroll;

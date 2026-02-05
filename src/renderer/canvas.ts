@@ -64,7 +64,7 @@ export class CanvasRenderer extends BaseRenderer {
         const bh = h - border;
 
         if (style.border_radius.value > 0) {
-            this._draw_rounded_rect(ctx, bx, by, bw, bh, style.border_radius.value);
+            this.draw_rounded_rect(ctx, bx, by, bw, bh, style.border_radius.value);
         } else {
             ctx.beginPath();
             ctx.rect(bx, by, bw, bh);
@@ -137,7 +137,7 @@ export class CanvasRenderer extends BaseRenderer {
 
         if (style?.border_radius.value > 0) {
             // draw path in local coordinates (centered)
-            this._draw_rounded_rect(ctx, -w / 2, -h / 2, w, h, style.border_radius.value);
+            this.draw_rounded_rect(ctx, -w / 2, -h / 2, w, h, style.border_radius.value);
             ctx.clip();
         }
 
@@ -178,7 +178,7 @@ export class CanvasRenderer extends BaseRenderer {
         this.ctx.scale(x, y);
     }
 
-    private _draw_rounded_rect(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, radius: number): void {
+    private draw_rounded_rect(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, radius: number): void {
         if (w < 2 * radius) radius = w / 2;
         if (h < 2 * radius) radius = h / 2;
 
