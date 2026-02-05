@@ -56,7 +56,7 @@ export abstract class BaseLayout extends Node {
         renderer.render_box(id, this.x, this.y, this.w, this.h, style);
     }
 
-    get_available_size(): { width: number; height: number } {
+    get_available_space(): { width: number; height: number } {
         const parent_bounds = this.get_parent_bounds();
         return { width: parent_bounds.w - this.x, height: parent_bounds.h - this.y };
     }
@@ -115,7 +115,7 @@ export abstract class BaseLayout extends Node {
         }
     }
 
-    update_visibility(scroll_top: number): void {
+    update_child_visibility(scroll_top: number): void {
         const content_bounds = this.get_content_bounds();
         const view_top = content_bounds.y + scroll_top;
         const view_bottom = view_top + content_bounds.h;

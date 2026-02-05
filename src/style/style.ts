@@ -310,10 +310,6 @@ export class NodeStyle {
         return this;
     }
 
-    background(value: Color, states: StateName | StateName[] | null = null): this {
-        return this.background_color(value, states);
-    }
-
     scrollbar_width(value: number, states: StateName | StateName[] | null = null): this {
         this._apply_to_states({ scrollbar_width: value }, states);
         return this;

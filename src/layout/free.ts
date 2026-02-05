@@ -33,7 +33,7 @@ export class FreeLayout extends BaseLayout {
         if (scroll) {
             scroll.content_height = this.content_height;
             scroll.max_scroll = Math.max(0, this.content_height - content_bounds.h);
-            this.update_visibility(scroll.scroll_top || 0);
+            this.update_child_visibility(scroll.scroll_top || 0);
         }
     }
 }

@@ -65,13 +65,13 @@ export class FlexLayout extends BaseLayout {
         if (!this.is_dirty && !this.auto_resize_height && !this.auto_resize_width) {
             if (scroll) {
                 scroll.max_scroll = Math.max(0, this.content_height - this.h);
-                this.update_visibility(scroll.scroll_top);
+                this.update_child_visibility(scroll.scroll_top);
             }
             return;
         }
 
         const is_row = this.direction == "row";
-        const available_size = this.get_available_size();
+        const available_size = this.get_available_space();
         const style = this.get_style();
 
         // speculative resize to match parent availability
@@ -281,7 +281,7 @@ export class FlexLayout extends BaseLayout {
                 scroll.scroll_top = scroll.max_scroll;
             }
 
-            this.update_visibility(scroll.scroll_top);
+            this.update_child_visibility(scroll.scroll_top);
         }
     }
 

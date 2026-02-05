@@ -112,7 +112,7 @@ test("layout visibility - ignores ghost nodes", () => {
 
     layout.add_children(spacer, box);
 
-    layout.update_visibility(0);
+    layout.update_child_visibility(0);
 
     expect(spacer.visible).toBe(false);
     expect(box.visible).toBe(true);
@@ -134,7 +134,7 @@ test("layout visibility - culls on horizontal bounds too", () => {
 
     layout.add_children(inside, outside);
 
-    layout.update_visibility(0);
+    layout.update_child_visibility(0);
 
     expect(inside.visible).toBe(true);
     expect(outside.visible).toBe(false);
