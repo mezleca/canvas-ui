@@ -222,7 +222,7 @@ export class FlexLayout extends BaseLayout {
 
                 const x = content_bounds.x + (is_row ? current_main : cross_pos);
                 const y = content_bounds.y + (is_row ? cross_pos : current_main);
-                child.update_pos(x, y);
+                child.set_position(x, y);
 
                 current_main += child_main_size;
 

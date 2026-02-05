@@ -227,11 +227,6 @@ export class Node {
         renderer.render_box(this.id, this.x, this.y, this.w, this.h, style);
     }
 
-    update_pos(x?: number, y?: number): void {
-        if (x != undefined) this.x = x;
-        if (y != undefined) this.y = y;
-    }
-
     set_bounds(x: number, y: number, w: number, h: number): this {
         this.x = x;
         this.y = y;
