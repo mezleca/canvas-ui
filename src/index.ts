@@ -20,6 +20,7 @@ export { Tween, TweenManager, EASINGS, type EasingFn } from "./style/interpolati
 export { BaseLayout } from "./layout/base.ts";
 export { FlexLayout, type FlexDirection, type FlexJustify, type FlexAlign } from "./layout/flex.ts";
 export { FreeLayout } from "./layout/free.ts";
+export { BlockLayout } from "./layout/block.ts";
 
 // behaviors
 export type { Behavior } from "./behaviors/behavior.ts";
@@ -36,4 +37,4 @@ export { SliderWidget } from "./widgets/slider.ts";
 export { LineWidget } from "./widgets/line.ts";
 
 // helpers
-export { create_box, create_text, create_button, create_image, create_flex, create_free, create_line } from "./helpers/factory.ts";
+export { create_box, create_text, create_button, create_image, create_flex, create_free, create_block, create_line } from "./helpers/factory.ts";

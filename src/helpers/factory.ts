@@ -4,6 +4,7 @@ import { ButtonWidget } from "../widgets/button.ts";
 import { ImageWidget } from "../widgets/image.ts";
 import { FlexLayout, type FlexAlign, type FlexDirection, type FlexJustify } from "../layout/flex.ts";
 import { FreeLayout } from "../layout/free.ts";
+import { BlockLayout } from "../layout/block.ts";
 import type { Color } from "../style/color.ts";
 import type { vec2d } from "../core/math.ts";
 import { LineWidget } from "../widgets/line.ts";
@@ -154,4 +155,22 @@ export const create_free = (
         options.parent.add_children(free);
     }
     return free;
+};
+
+export const create_block = (
+    options: {
+        w?: number;
+        h?: number;
+        gap?: number;
+        inline?: boolean;
+        parent?: any;
+    } = {}
+): BlockLayout => {
+    const block = new BlockLayout(options.w, options.h);
+    if (options.gap != null) block.set_gap(options.gap);
+    if (options.inline != null) block.set_inline(options.inline);
+    if (options.parent && options.parent.add_children) {
+        options.parent.add_children(block);
+    }
+    return block;
 };
