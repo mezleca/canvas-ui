@@ -36,7 +36,6 @@ const rainbow = (t: number) => {
 };
 
 const root = create_flex({ w: 1200, h: 800, direction: "column", wrap: false });
-root.set_resize({ width: true, height: true });
 root.style.background_color(color(26, 26, 26));
 root.style.padding(0);
 
@@ -47,7 +46,7 @@ game_view.style.border_radius(6);
 
 root.add_children(game_view);
 ui.set_root(root);
-ui.set_resize({ width: true, height: true });
+ui.set_root_fullscreen();
 
 type Platform = { x: number; y: number; w: number; h: number; node: BoxWidget };
 type Enemy = {
@@ -581,10 +580,6 @@ game_view.on("update", (node: any, dt: number = 0) => {
 
     const input = node.get_input_state();
     const screen = input.screen;
-    if (root.w !== screen.w || root.h !== screen.h) {
-        ui.set_root_fullscreen();
-    }
-
     if (game_view.w !== screen.w || game_view.h !== screen.h) {
         game_view.set_size(screen.w, screen.h);
         game_view.set_position(0, 0);

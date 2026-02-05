@@ -24,7 +24,6 @@ export class UI {
     viewport_dirty: boolean;
     input_state: InputState;
     continuous_render: boolean;
-    debug_overlay_enabled: boolean;
     auto_resize_root: boolean;
 
     constructor(renderer: Renderer) {
@@ -53,7 +52,6 @@ export class UI {
         this.viewport_dirty = true;
         this.input_state = create_input_state();
         this.continuous_render = false;
-        this.debug_overlay_enabled = false;
         this.auto_resize_root = false;
 
         // bind event handlers to preserve this context
@@ -77,7 +75,9 @@ export class UI {
         this.auto_resize_root = false;
     }
 
-    set_root_fullscreen(): void {
+    set_root_fullscreen(value: boolean = true): void {
+        this.auto_resize_root = value;
+        if (!value) return;
         this.root.set_position(0, 0);
         this.root.set_size(this.input_state.screen.w, this.input_state.screen.h);
         this.root.mark_dirty_recursive();
@@ -260,12 +260,12 @@ export class UI {
         this.request_render();
     }
 
-    _collect_all_nodes(): void {
+    private _collect_all_nodes(): void {
         this.all_nodes.length = 0;
         this._collect_recursive(this.root);
     }
 
-    _collect_recursive(node: Node): void {
+    private _collect_recursive(node: Node): void {
         this.all_nodes.push(node);
         const children = node.children;
         for (let i = 0; i < children.length; i++) {
@@ -273,7 +273,7 @@ export class UI {
         }
     }
 
-    update_viewport(): boolean {
+    private update_viewport(): boolean {
         if (typeof window == "undefined") {
             return false;
         }

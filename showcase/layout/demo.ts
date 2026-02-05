@@ -28,7 +28,7 @@ main.style.background_color({ r: 25, g: 25, b: 30, a: 255 });
 main.add_behavior(new ScrollBehavior(main));
 
 ui.set_root(main);
-ui.set_resize({ width: true, height: true });
+ui.set_root_fullscreen();
 
 const create_title = (text: string, parent: FlexLayout) => {
     create_text({ text, font: "Arial", size: 18, color: { r: 255, g: 255, b: 255, a: 255 }, parent });
