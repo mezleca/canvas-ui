@@ -1,6 +1,7 @@
 import { BaseLayout } from "./base.ts";
 import type { Node } from "../core/node.ts";
 import type { Renderer } from "../renderer/renderer.ts";
+import { LineWidget } from "../widgets/line.ts";
 
 export type FlexDirection = "row" | "column";
 export type FlexJustify = "start" | "center" | "end" | "space-between" | "space-around";
@@ -125,7 +126,8 @@ export class FlexLayout extends BaseLayout {
                 child.calculate(renderer);
             }
 
-            const child_main_size = (is_row ? child.w : child.h) + (child.is_ghost ? 0 : this.gap);
+            const ignore_line_in_fixed_layout = !this.auto_resize_width && !this.auto_resize_height && child instanceof LineWidget;
+            const child_main_size = ignore_line_in_fixed_layout ? 0 : (is_row ? child.w : child.h) + (child.is_ghost ? 0 : this.gap);
             const child_cross_size = is_row ? child.h : child.w;
             const needs_new_row = this.wrap && current_row.children.length > 0 && current_row.main_size + child_main_size > max_main_size;
 
@@ -136,7 +138,9 @@ export class FlexLayout extends BaseLayout {
 
             current_row.children.push(child);
             current_row.main_size += child_main_size;
-            current_row.cross_size = Math.max(current_row.cross_size, child_cross_size);
+            if (!ignore_line_in_fixed_layout) {
+                current_row.cross_size = Math.max(current_row.cross_size, child_cross_size);
+            }
         }
 
         if (current_row.children.length > 0) {
@@ -198,15 +202,18 @@ export class FlexLayout extends BaseLayout {
 
             for (let ci = 0; ci < row_children.length; ci++) {
                 const child = row_children[ci]!;
-                const child_main_size = is_row ? child.w : child.h;
+                const ignore_line_in_fixed_layout = !this.auto_resize_width && !this.auto_resize_height && child instanceof LineWidget;
+                const child_main_size = ignore_line_in_fixed_layout ? 0 : is_row ? child.w : child.h;
                 const child_cross_size = is_row ? child.h : child.w;
 
                 let cross_pos = row.position;
                 const cross_space = !is_row && !this.wrap ? content_bounds.w : row.cross_size;
-                if (this.align == "center") {
-                    cross_pos += (cross_space - child_cross_size) / 2;
-                } else if (this.align == "end") {
-                    cross_pos += cross_space - child_cross_size;
+                if (!ignore_line_in_fixed_layout) {
+                    if (this.align == "center") {
+                        cross_pos += (cross_space - child_cross_size) / 2;
+                    } else if (this.align == "end") {
+                        cross_pos += cross_space - child_cross_size;
+                    }
                 }
 
                 const x = content_bounds.x + (is_row ? current_main : cross_pos);
@@ -216,7 +223,9 @@ export class FlexLayout extends BaseLayout {
                 current_main += child_main_size;
 
                 // apply gap or calculated spacing
-                if (this.justify == "space-between" || this.justify == "space-around") {
+                if (ignore_line_in_fixed_layout) {
+                    // keep position stable; do not consume layout space
+                } else if (this.justify == "space-between" || this.justify == "space-around") {
                     current_main += spacing;
                 } else {
                     current_main += child.is_ghost ? 0 : this.gap;
