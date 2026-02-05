@@ -7,21 +7,21 @@ import { ColorProperty } from "./color.ts";
 export type StateName = "default" | "hover" | "active" | "disabled";
 
 export class NodeStyle {
-    private _states: Record<StateName, StyleState>;
-    private _computed: StyleState; // the actual rendered values
+    private states_map: Record<StateName, StyleState>;
+    private computed_state: StyleState; // the actual rendered values
     current_state: StateName;
     private element: any;
     private tween_manager: TweenManager;
     private transitions: Map<string, { duration: number; easing: EasingFn }>;
 
     constructor(element: any) {
-        this._states = {
+        this.states_map = {
             default: new StyleState(),
             hover: new StyleState(),
             active: new StyleState(),
             disabled: new StyleState()
         };
-        this._computed = new StyleState(); // starts as default values
+        this.computed_state = new StyleState(); // starts as default values
         this.current_state = "default";
         this.element = element;
         this.tween_manager = new TweenManager();
@@ -32,11 +32,11 @@ export class NodeStyle {
 
     private setup_change_listeners(): void {
         // listen to changes on declared states (to mark dirty when styles change)
-        for (const state of Object.values(this._states)) {
+        for (const state of Object.values(this.states_map)) {
             this.add_listeners_to_state(state);
         }
         // listen to changes on computed state (for tween updates)
-        this.add_listeners_to_state(this._computed);
+        this.add_listeners_to_state(this.computed_state);
     }
 
     private add_listeners_to_state(state: StyleState): void {
@@ -46,8 +46,8 @@ export class NodeStyle {
             const prop = state[key];
 
             if (prop instanceof StyleProperty || prop instanceof ColorProperty) {
-                const original_on_change = (prop as any)._on_change;
-                (prop as any)._on_change = (new_value: any, old_value: any) => {
+                const original_on_change = (prop as any).on_change;
+                (prop as any).on_change = (new_value: any, old_value: any) => {
                     this.element.mark_dirty();
                     if (key === "z_index" && this.element.notify_parent_order_change) {
                         this.element.notify_parent_order_change();
@@ -59,15 +59,15 @@ export class NodeStyle {
     }
 
     get current(): StyleState {
-        return this._computed;
+        return this.computed_state;
     }
 
     get states() {
-        return this._states;
+        return this.states_map;
     }
 
     get_current(): StyleState {
-        return this._computed;
+        return this.computed_state;
     }
 
     set_current_state(state_name: StateName): this {
@@ -75,7 +75,7 @@ export class NodeStyle {
             return this;
         }
 
-        const target_state = this._states[state_name];
+        const target_state = this.states_map[state_name];
         if (!target_state) {
             return this;
         }
@@ -84,10 +84,10 @@ export class NodeStyle {
         this.tween_manager.clear();
 
         // create transitions for properties that have them configured
-        const prop_keys = Object.keys(this._computed) as (keyof StyleState)[];
+        const prop_keys = Object.keys(this.computed_state) as (keyof StyleState)[];
 
         for (const key of prop_keys) {
-            const computed_prop = this._computed[key];
+            const computed_prop = this.computed_state[key];
             const target_prop = target_state[key];
             const config = this.transitions.get(key as string);
 
@@ -136,10 +136,10 @@ export class NodeStyle {
     private apply_to_states(property_updates: Partial<Record<keyof StyleState, any>>, states: StateName | StateName[] | null = null): void {
         const target_states =
             states == null
-                ? Object.values(this._states)
+                ? Object.values(this.states_map)
                 : Array.isArray(states)
-                  ? states.map((s) => this._states[s]).filter(Boolean)
-                  : [this._states[states]].filter(Boolean);
+                  ? states.map((s) => this.states_map[s]).filter(Boolean)
+                  : [this.states_map[states]].filter(Boolean);
 
         let changed = false;
         for (const state of target_states) {
@@ -162,7 +162,7 @@ export class NodeStyle {
 
         if (current_state_updated) {
             for (const [key, value] of Object.entries(property_updates) as [keyof StyleState, any][]) {
-                const prop = this._computed[key];
+                const prop = this.computed_state[key];
                 if ((prop instanceof StyleProperty || prop instanceof ColorProperty) && value != null) {
                     if (!this.values_equal((prop as any).value, value)) {
                         prop.value = value;
@@ -180,10 +180,10 @@ export class NodeStyle {
     private update_padding_position(position: number, value: number, states: StateName | StateName[] | null = null): void {
         const target_states =
             states == null
-                ? Object.values(this._states)
+                ? Object.values(this.states_map)
                 : Array.isArray(states)
-                  ? states.map((s) => this._states[s]).filter(Boolean)
-                  : [this._states[states]].filter(Boolean);
+                  ? states.map((s) => this.states_map[s]).filter(Boolean)
+                  : [this.states_map[states]].filter(Boolean);
 
         for (const state of target_states) {
             const current_padding = [...state.padding.value] as [number, number, number, number];
@@ -197,12 +197,12 @@ export class NodeStyle {
         // sync computed if needed
         if (states == null || states == "default" || (Array.isArray(states) && states.includes("default"))) {
             if (this.current_state == "default") {
-                const current_padding = [...this._computed.padding.value] as [number, number, number, number];
+                const current_padding = [...this.computed_state.padding.value] as [number, number, number, number];
                 if (current_padding[position] === value) {
                     return;
                 }
                 current_padding[position] = value;
-                this._computed.padding.value = current_padding;
+                this.computed_state.padding.value = current_padding;
             }
         }
     }

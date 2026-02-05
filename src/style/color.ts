@@ -35,11 +35,11 @@ export class ColorProperty extends StyleProperty<Color> {
     }
 
     override get value(): Color {
-        return { ...this._value };
+        return { ...this.value_data };
     }
 
     override set value(color: Partial<Color>) {
-        const next = { ...DEFAULT_COLOR, ...this._value, ...color };
+        const next = { ...DEFAULT_COLOR, ...this.value_data, ...color };
         if (!("a" in color)) {
             next.a = 255;
         }
@@ -47,7 +47,7 @@ export class ColorProperty extends StyleProperty<Color> {
     }
 
     to_rgb(): string {
-        const { r, g, b, a } = this._value;
+        const { r, g, b, a } = this.value_data;
         return `rgba(${r}, ${g}, ${b}, ${a / 255})`;
     }
 
