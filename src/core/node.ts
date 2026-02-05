@@ -70,7 +70,7 @@ export class Node {
     // add a child node to this node
     add(child: Node): this {
         child.parent = this;
-        child._propagate_ui_reference(this.ui);
+        child.propagate_ui_reference(this.ui);
         this.children.push(child);
         this.children_order_dirty = true;
         this.mark_dirty();
@@ -124,14 +124,14 @@ export class Node {
         return this;
     }
 
-    _notify_parent_order_change(): void {
+    notify_parent_order_change(): void {
         if (this.parent) {
             this.parent.children_order_dirty = true;
             this.parent.mark_dirty();
         }
     }
 
-    _ensure_children_order(): void {
+    ensure_children_order(): void {
         if (!this.children_order_dirty || this.children.length <= 1) return;
         // stable sort keeps insertion order for equal z_index
         this.children.sort((a, b) => {
@@ -183,16 +183,16 @@ export class Node {
         return this.style.get_current();
     }
 
-    _propagate_ui_reference(ui: UI | null): void {
+    propagate_ui_reference(ui: UI | null): void {
         this.ui = ui;
         const children = this.children;
 
         for (let i = 0; i < children.length; i++) {
-            children[i]!._propagate_ui_reference(ui);
+            children[i]!.propagate_ui_reference(ui);
         }
     }
 
-    _update_style_state(is_hovered: boolean, is_active: boolean): void {
+    private update_style_state(is_hovered: boolean, is_active: boolean): void {
         let new_state: "default" | "hover" | "active" | "disabled" = "default";
 
         if (is_active) {
@@ -226,7 +226,7 @@ export class Node {
         }
 
         // render children
-        this._ensure_children_order();
+        this.ensure_children_order();
         const children = this.children;
 
         for (let i = 0; i < children.length; i++) {
@@ -269,7 +269,7 @@ export class Node {
         return { x: offset_x, y: offset_y };
     }
 
-    _is_hovered(x: number, y: number, w: number, h: number): boolean {
+    is_hovered_at(x: number, y: number, w: number, h: number): boolean {
         const input = this.get_input_state();
         const visual_offset = this.get_visual_offset();
 
@@ -283,7 +283,7 @@ export class Node {
     }
 
     is_hovered(): boolean {
-        return this._is_hovered(this.x, this.y, this.w, this.h);
+        return this.is_hovered_at(this.x, this.y, this.w, this.h);
     }
 
     is_pressed(): boolean {
@@ -341,29 +341,29 @@ export class Node {
         const has_m1_pressed = input.keys.has("mouse1");
 
         // update style state
-        this._update_style_state(is_hovered, has_m1_pressed && this.holding);
+        this.update_style_state(is_hovered, has_m1_pressed && this.holding);
 
         // hover state transitions
         if (is_hovered && !this.hovering) {
             this.hovering = true;
-            this._emit("mouseover");
+            this.emit("mouseover");
         } else if (!is_hovered && this.hovering) {
             this.hovering = false;
-            this._emit("mouseleave");
+            this.emit("mouseleave");
         }
 
         // mouse down
         if (is_hovered && !this.holding && has_m1_pressed) {
             this.holding = true;
-            this._emit("mousedown");
+            this.emit("mousedown");
         }
 
         // mouse up / click handling
         if (!has_m1_pressed && this.holding) {
             this.holding = false;
-            this._emit("mouseup");
+            this.emit("mouseup");
             if (is_hovered) {
-                this._emit("click");
+                this.emit("click");
             }
         }
 
@@ -371,7 +371,7 @@ export class Node {
         this.style.update_tweens(dt);
 
         // emit update event for custom logic
-        this._emit("update", dt);
+        this.emit("update", dt);
     }
 
     update_recursive(dt: number = 0.016): void {
@@ -418,7 +418,7 @@ export class Node {
         return this;
     }
 
-    private _emit<T extends NodeEventName>(event_name: T, payload?: NodeEventPayload<T>): void {
+    private emit<T extends NodeEventName>(event_name: T, payload?: NodeEventPayload<T>): void {
         const cb = this.events.get(event_name);
         if (!cb) return;
         (cb as any)(this, payload);
@@ -464,7 +464,7 @@ export class Node {
             this.w = w;
             this.h = h;
             this.mark_dirty();
-            this._emit("resize", { w, h, prev_w, prev_h });
+            this.emit("resize", { w, h, prev_w, prev_h });
         }
         return this;
     }

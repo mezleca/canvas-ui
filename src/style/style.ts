@@ -27,19 +27,19 @@ export class NodeStyle {
         this.tween_manager = new TweenManager();
         this.transitions = new Map();
 
-        this._setup_change_listeners();
+        this.setup_change_listeners();
     }
 
-    private _setup_change_listeners(): void {
+    private setup_change_listeners(): void {
         // listen to changes on declared states (to mark dirty when styles change)
         for (const state of Object.values(this._states)) {
-            this._add_listeners_to_state(state);
+            this.add_listeners_to_state(state);
         }
         // listen to changes on computed state (for tween updates)
-        this._add_listeners_to_state(this._computed);
+        this.add_listeners_to_state(this._computed);
     }
 
-    private _add_listeners_to_state(state: StyleState): void {
+    private add_listeners_to_state(state: StyleState): void {
         const prop_keys = Object.keys(state) as (keyof StyleState)[];
 
         for (const key of prop_keys) {
@@ -49,8 +49,8 @@ export class NodeStyle {
                 const original_on_change = (prop as any)._on_change;
                 (prop as any)._on_change = (new_value: any, old_value: any) => {
                     this.element.mark_dirty();
-                    if (key === "z_index" && this.element._notify_parent_order_change) {
-                        this.element._notify_parent_order_change();
+                    if (key === "z_index" && this.element.notify_parent_order_change) {
+                        this.element.notify_parent_order_change();
                     }
                     original_on_change(new_value, old_value);
                 };
@@ -133,7 +133,7 @@ export class NodeStyle {
         return this.element;
     }
 
-    private _apply_to_states(property_updates: Partial<Record<keyof StyleState, any>>, states: StateName | StateName[] | null = null): void {
+    private apply_to_states(property_updates: Partial<Record<keyof StyleState, any>>, states: StateName | StateName[] | null = null): void {
         const target_states =
             states == null
                 ? Object.values(this._states)
@@ -148,7 +148,7 @@ export class NodeStyle {
             for (const [key, value] of entries) {
                 const prop = state[key];
                 if ((prop instanceof StyleProperty || prop instanceof ColorProperty) && value != null) {
-                    if (!this._values_equal((prop as any).value, value)) {
+                    if (!this.values_equal((prop as any).value, value)) {
                         prop.value = value;
                         changed = true;
                     }
@@ -164,7 +164,7 @@ export class NodeStyle {
             for (const [key, value] of Object.entries(property_updates) as [keyof StyleState, any][]) {
                 const prop = this._computed[key];
                 if ((prop instanceof StyleProperty || prop instanceof ColorProperty) && value != null) {
-                    if (!this._values_equal((prop as any).value, value)) {
+                    if (!this.values_equal((prop as any).value, value)) {
                         prop.value = value;
                         changed = true;
                     }
@@ -177,7 +177,7 @@ export class NodeStyle {
         }
     }
 
-    private _update_padding_position(position: number, value: number, states: StateName | StateName[] | null = null): void {
+    private update_padding_position(position: number, value: number, states: StateName | StateName[] | null = null): void {
         const target_states =
             states == null
                 ? Object.values(this._states)
@@ -207,7 +207,7 @@ export class NodeStyle {
         }
     }
 
-    private _values_equal(a: any, b: any): boolean {
+    private values_equal(a: any, b: any): boolean {
         if (a === b) return true;
         if (a == null || b == null) return false;
 
@@ -241,12 +241,12 @@ export class NodeStyle {
 
     // style setters
     text_align(value: TextAlign, states: StateName | StateName[] | null = null): this {
-        this._apply_to_states({ text_align: value }, states);
+        this.apply_to_states({ text_align: value }, states);
         return this;
     }
 
     text_baseline(value: TextBaseline, states: StateName | StateName[] | null = null): this {
-        this._apply_to_states({ text_baseline: value }, states);
+        this.apply_to_states({ text_baseline: value }, states);
         return this;
     }
 
@@ -254,114 +254,114 @@ export class NodeStyle {
         const props: Partial<Record<keyof StyleState, any>> = { font };
         if (size != null) props.font_size = size;
         if (color != null) props.font_color = color;
-        this._apply_to_states(props, states);
+        this.apply_to_states(props, states);
         return this;
     }
 
     font_size(value: number, states: StateName | StateName[] | null = null): this {
-        this._apply_to_states({ font_size: value }, states);
+        this.apply_to_states({ font_size: value }, states);
         return this;
     }
 
     font_color(value: Color, states: StateName | StateName[] | null = null): this {
-        this._apply_to_states({ font_color: value }, states);
+        this.apply_to_states({ font_color: value }, states);
         return this;
     }
 
     spacing(value: number, states: StateName | StateName[] | null = null): this {
-        this._apply_to_states({ spacing: value }, states);
+        this.apply_to_states({ spacing: value }, states);
         return this;
     }
 
     rotate(value: number, states: StateName | StateName[] | null = null): this {
-        this._apply_to_states({ rotate: value }, states);
+        this.apply_to_states({ rotate: value }, states);
         return this;
     }
 
     z_index(value: number, states: StateName | StateName[] | null = null): this {
-        this._apply_to_states({ z_index: value }, states);
+        this.apply_to_states({ z_index: value }, states);
         return this;
     }
 
     border(size: number, color?: Color, states: StateName | StateName[] | null = null): this {
         const props: Partial<Record<keyof StyleState, any>> = { border_size: size };
         if (color) props.border_color = color;
-        this._apply_to_states(props, states);
+        this.apply_to_states(props, states);
         return this;
     }
 
     border_size(value: number, states: StateName | StateName[] | null = null): this {
-        this._apply_to_states({ border_size: value }, states);
+        this.apply_to_states({ border_size: value }, states);
         return this;
     }
 
     border_color(value: Color, states: StateName | StateName[] | null = null): this {
-        this._apply_to_states({ border_color: value }, states);
+        this.apply_to_states({ border_color: value }, states);
         return this;
     }
 
     border_radius(value: number, states: StateName | StateName[] | null = null): this {
-        this._apply_to_states({ border_radius: value }, states);
+        this.apply_to_states({ border_radius: value }, states);
         return this;
     }
 
     background_color(value: Color, states: StateName | StateName[] | null = null): this {
-        this._apply_to_states({ background_color: value }, states);
+        this.apply_to_states({ background_color: value }, states);
         return this;
     }
 
     scrollbar_width(value: number, states: StateName | StateName[] | null = null): this {
-        this._apply_to_states({ scrollbar_width: value }, states);
+        this.apply_to_states({ scrollbar_width: value }, states);
         return this;
     }
 
     scrollbar_thumb_width(value: number, states: StateName | StateName[] | null = null): this {
-        this._apply_to_states({ scrollbar_thumb_width: value }, states);
+        this.apply_to_states({ scrollbar_thumb_width: value }, states);
         return this;
     }
 
     scrollbar_thumb_radius(value: number, states: StateName | StateName[] | null = null): this {
-        this._apply_to_states({ scrollbar_thumb_radius: value }, states);
+        this.apply_to_states({ scrollbar_thumb_radius: value }, states);
         return this;
     }
 
     scrollbar_background_color(value: Color, states: StateName | StateName[] | null = null): this {
-        this._apply_to_states({ scrollbar_background_color: value }, states);
+        this.apply_to_states({ scrollbar_background_color: value }, states);
         return this;
     }
 
     scrollbar_thumb_color(value: Color, states: StateName | StateName[] | null = null): this {
-        this._apply_to_states({ scrollbar_thumb_color: value }, states);
+        this.apply_to_states({ scrollbar_thumb_color: value }, states);
         return this;
     }
 
     horizontal_justify(value: Justify, states: StateName | StateName[] | null = null): this {
-        this._apply_to_states({ horizontal_justify: value }, states);
+        this.apply_to_states({ horizontal_justify: value }, states);
         return this;
     }
 
     vertical_justify(value: VerticalAlign, states: StateName | StateName[] | null = null): this {
-        this._apply_to_states({ vertical_justify: value }, states);
+        this.apply_to_states({ vertical_justify: value }, states);
         return this;
     }
 
     max_width(value: number | null, states: StateName | StateName[] | null = null): this {
-        this._apply_to_states({ max_width: value }, states);
+        this.apply_to_states({ max_width: value }, states);
         return this;
     }
 
     max_height(value: number | null, states: StateName | StateName[] | null = null): this {
-        this._apply_to_states({ max_height: value }, states);
+        this.apply_to_states({ max_height: value }, states);
         return this;
     }
 
     min_width(value: number | null, states: StateName | StateName[] | null = null): this {
-        this._apply_to_states({ min_width: value }, states);
+        this.apply_to_states({ min_width: value }, states);
         return this;
     }
 
     min_height(value: number | null, states: StateName | StateName[] | null = null): this {
-        this._apply_to_states({ min_height: value }, states);
+        this.apply_to_states({ min_height: value }, states);
         return this;
     }
 
@@ -375,27 +375,27 @@ export class NodeStyle {
 
         const padding: [number, number, number, number] = values.length == 1 ? [v0, v0, v0, v0] : [v0, v1, v2, v3];
 
-        this._apply_to_states({ padding });
+        this.apply_to_states({ padding });
         return this;
     }
 
     padding_left(value: number, states: StateName | StateName[] | null = null): this {
-        this._update_padding_position(PADDING_POSITIONS.LEFT, value, states);
+        this.update_padding_position(PADDING_POSITIONS.LEFT, value, states);
         return this;
     }
 
     padding_right(value: number, states: StateName | StateName[] | null = null): this {
-        this._update_padding_position(PADDING_POSITIONS.RIGHT, value, states);
+        this.update_padding_position(PADDING_POSITIONS.RIGHT, value, states);
         return this;
     }
 
     padding_top(value: number, states: StateName | StateName[] | null = null): this {
-        this._update_padding_position(PADDING_POSITIONS.TOP, value, states);
+        this.update_padding_position(PADDING_POSITIONS.TOP, value, states);
         return this;
     }
 
     padding_bottom(value: number, states: StateName | StateName[] | null = null): this {
-        this._update_padding_position(PADDING_POSITIONS.BOTTOM, value, states);
+        this.update_padding_position(PADDING_POSITIONS.BOTTOM, value, states);
         return this;
     }
 }

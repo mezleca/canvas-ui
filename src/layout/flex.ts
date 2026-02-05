@@ -114,14 +114,14 @@ export class FlexLayout extends BaseLayout {
         // clear rows
         this.rows = [];
 
-        let current_row = this._create_row();
+        let current_row = this.create_row();
 
         // organize children into rows/columns
         const children = this.children;
         for (let i = 0; i < children.length; i++) {
             const child = children[i]!;
 
-            if (child.is_dirty && this._can_calculate(child)) {
+            if (child.is_dirty && this.can_calculate(child)) {
                 child.calculate(renderer);
             }
 
@@ -131,7 +131,7 @@ export class FlexLayout extends BaseLayout {
 
             if (needs_new_row) {
                 this.rows.push(current_row);
-                current_row = this._create_row();
+                current_row = this.create_row();
             }
 
             current_row.children.push(child);
@@ -285,7 +285,7 @@ export class FlexLayout extends BaseLayout {
         }
     }
 
-    private _create_row(): { children: Node[]; main_size: number; cross_size: number; position: number } {
+    private create_row(): { children: Node[]; main_size: number; cross_size: number; position: number } {
         return {
             children: [],
             main_size: 0,
@@ -294,7 +294,7 @@ export class FlexLayout extends BaseLayout {
         };
     }
 
-    private _can_calculate(node: Node): node is Node & { calculate: (renderer: Renderer) => void } {
+    private can_calculate(node: Node): node is Node & { calculate: (renderer: Renderer) => void } {
         return typeof (node as any).calculate === "function";
     }
 }

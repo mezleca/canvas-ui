@@ -50,7 +50,7 @@ export class ScrollBehavior implements Behavior {
             const scrollbar_width = style.scrollbar_width.value;
             const scrollbar_x = this.node.x + this.node.w - scrollbar_width;
             const is_holding = input.keys.has("mouse1");
-            const is_over_scrollbar = this.node._is_hovered(scrollbar_x, this.node.y, scrollbar_width, this.node.h);
+            const is_over_scrollbar = this.node.is_hovered_at(scrollbar_x, this.node.y, scrollbar_width, this.node.h);
 
             // start drag
             if (!this.holding_scrollbar && is_over_scrollbar && is_holding) {

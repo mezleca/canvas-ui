@@ -75,8 +75,8 @@ export class UI {
 
     set_root(node: Node): void {
         this.root = node;
-        node._propagate_ui_reference(this);
-        this._collect_all_nodes();
+        node.propagate_ui_reference(this);
+        this.collect_all_nodes();
 
         if (this.auto_resize_root) {
             this.root.w = this.current_width;
@@ -91,22 +91,22 @@ export class UI {
         this.nodes_changed = true;
     }
 
-    private _is_point_in_rect(x: number, y: number, rx: number, ry: number, rw: number, rh: number): boolean {
+    private is_point_in_rect(x: number, y: number, rx: number, ry: number, rw: number, rh: number): boolean {
         return x >= rx && x <= rx + rw && y >= ry && y <= ry + rh;
     }
 
-    private _has_overflow(node: Node): boolean {
+    private has_overflow(node: Node): boolean {
         return (node as any).has_overflow === true;
     }
 
-    private _is_point_in_content_bounds(node: Node, scroll_offset_x: number, scroll_offset_y: number, cursor_x: number, cursor_y: number): boolean {
+    private is_point_in_content_bounds(node: Node, scroll_offset_x: number, scroll_offset_y: number, cursor_x: number, cursor_y: number): boolean {
         const bounds = node.get_content_bounds();
         const bx = bounds.x - scroll_offset_x;
         const by = bounds.y - scroll_offset_y;
-        return this._is_point_in_rect(cursor_x, cursor_y, bx, by, bounds.w, bounds.h);
+        return this.is_point_in_rect(cursor_x, cursor_y, bx, by, bounds.w, bounds.h);
     }
 
-    private _get_child_scroll_offsets(node: Node, scroll_offset_x: number, scroll_offset_y: number): { x: number; y: number } {
+    private get_child_scroll_offsets(node: Node, scroll_offset_x: number, scroll_offset_y: number): { x: number; y: number } {
         const scroll = node.find_behavior("scroll") as any;
         if (!scroll) return { x: scroll_offset_x, y: scroll_offset_y };
         return {
@@ -115,30 +115,30 @@ export class UI {
         };
     }
 
-    private _hit_test_recursive(node: Node, scroll_offset_x: number, scroll_offset_y: number, cursor_x: number, cursor_y: number): Node | null {
+    private hit_test_recursive(node: Node, scroll_offset_x: number, scroll_offset_y: number, cursor_x: number, cursor_y: number): Node | null {
         if (!node.visible) return null;
 
         const visual_x = node.x - scroll_offset_x;
         const visual_y = node.y - scroll_offset_y;
 
         // check intersection with self
-        if (this._is_point_in_rect(cursor_x, cursor_y, visual_x, visual_y, node.w, node.h)) {
+        if (this.is_point_in_rect(cursor_x, cursor_y, visual_x, visual_y, node.w, node.h)) {
             // check children (top-most / last painted first)
             // assuming children are painted in order, so last child is on top
-            node._ensure_children_order();
+            node.ensure_children_order();
             const children = node.children;
 
             // if the node clips its content, only hit-test children inside the content bounds
-            if (this._has_overflow(node) && !this._is_point_in_content_bounds(node, scroll_offset_x, scroll_offset_y, cursor_x, cursor_y)) {
+            if (this.has_overflow(node) && !this.is_point_in_content_bounds(node, scroll_offset_x, scroll_offset_y, cursor_x, cursor_y)) {
                 return node;
             }
 
             // account for scroll behavior when testing children (scroll affects descendants, not the node itself)
-            const next_scroll = this._get_child_scroll_offsets(node, scroll_offset_x, scroll_offset_y);
+            const next_scroll = this.get_child_scroll_offsets(node, scroll_offset_x, scroll_offset_y);
 
             for (let i = children.length - 1; i >= 0; i--) {
                 const child = children[i]!;
-                const hit = this._hit_test_recursive(child, next_scroll.x, next_scroll.y, cursor_x, cursor_y);
+                const hit = this.hit_test_recursive(child, next_scroll.x, next_scroll.y, cursor_x, cursor_y);
                 if (hit) return hit;
             }
 
@@ -250,16 +250,16 @@ export class UI {
         this.request_render();
     }
 
-    private _collect_all_nodes(): void {
+    private collect_all_nodes(): void {
         this.all_nodes.length = 0;
-        this._collect_recursive(this.root);
+        this.collect_recursive(this.root);
     }
 
-    private _collect_recursive(node: Node): void {
+    private collect_recursive(node: Node): void {
         this.all_nodes.push(node);
         const children = node.children;
         for (let i = 0; i < children.length; i++) {
-            this._collect_recursive(children[i]!);
+            this.collect_recursive(children[i]!);
         }
     }
 
@@ -306,34 +306,34 @@ export class UI {
 
         // update input + layout before any render pass
         this.update(current_time);
-        this._refresh_nodes_if_needed();
+        this.refresh_nodes_if_needed();
 
         if (this.should_render || this.needs_render || viewport_changed) {
-            this._render_frame();
+            this.render_frame();
         }
     }
 
     update(current_time: number): void {
-        this._update_time(current_time);
-        this._update_focus();
+        this.update_time(current_time);
+        this.update_focus();
         // update behaviors/layouts with the latest dt
         this.root.update_recursive(this.delta_time);
-        this._update_key_transitions();
-        this._reset_wheel();
-        this._update_fps(current_time);
+        this.update_key_transitions();
+        this.reset_wheel();
+        this.update_fps(current_time);
     }
 
     destroy(): void {
         unregister_ui(this);
     }
 
-    private _refresh_nodes_if_needed(): void {
+    private refresh_nodes_if_needed(): void {
         if (!this.nodes_changed) return;
-        this._collect_all_nodes();
+        this.collect_all_nodes();
         this.nodes_changed = false;
     }
 
-    private _render_frame(): void {
+    private render_frame(): void {
         this.renderer.clear();
         this.root.render(this.renderer, this.internal_time);
 
@@ -351,7 +351,7 @@ export class UI {
         }
     }
 
-    private _update_time(current_time: number): void {
+    private update_time(current_time: number): void {
         this.delta_time = (current_time - this.last_time) / 1000;
         this.last_time = current_time;
 
@@ -373,12 +373,12 @@ export class UI {
         this.internal_time += this.delta_time;
     }
 
-    private _update_focus(): void {
+    private update_focus(): void {
         const input = this.input_state;
-        input.focused_node = this._hit_test_recursive(this.root, 0, 0, input.cursor.x, input.cursor.y);
+        input.focused_node = this.hit_test_recursive(this.root, 0, 0, input.cursor.x, input.cursor.y);
     }
 
-    private _update_key_transitions(): void {
+    private update_key_transitions(): void {
         if (!this.input_state.keys_changed && this.input_state.just_pressed.size === 0 && this.input_state.just_released.size === 0) {
             return;
         }
@@ -410,12 +410,12 @@ export class UI {
         this.input_state.keys_changed = false;
     }
 
-    private _reset_wheel(): void {
+    private reset_wheel(): void {
         this.input_state.cursor.delta_y = 0;
         this.input_state.cursor.delta_x = 0;
     }
 
-    private _update_fps(current_time: number): void {
+    private update_fps(current_time: number): void {
         this.frame_count++;
         if (current_time - this.last_fps_update >= 1000) {
             this.fps = Math.round((this.frame_count * 1000) / (current_time - this.last_fps_update));

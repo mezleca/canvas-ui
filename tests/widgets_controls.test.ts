@@ -18,7 +18,7 @@ describe("checkbox widget", () => {
     it("toggles and fires on_change", () => {
         const ui = create_mock_ui();
         const parent = new BoxWidget(100, 100);
-        parent._propagate_ui_reference(ui as any);
+        parent.propagate_ui_reference(ui as any);
 
         const checkbox = new CheckboxWidget(18);
         parent.add_children(checkbox);
@@ -38,7 +38,7 @@ describe("checkbox widget", () => {
     it("radio mode unchecks siblings", () => {
         const ui = create_mock_ui();
         const parent = new BoxWidget(120, 120);
-        parent._propagate_ui_reference(ui as any);
+        parent.propagate_ui_reference(ui as any);
 
         const a = new CheckboxWidget(18).set_radio(true, "group");
         const b = new CheckboxWidget(18).set_radio(true, "group");
@@ -60,7 +60,7 @@ describe("slider widget", () => {
     it("updates value from drag and snaps to step", () => {
         const ui = create_mock_ui();
         const slider = new SliderWidget(100, 8);
-        slider._propagate_ui_reference(ui as any);
+        slider.propagate_ui_reference(ui as any);
         slider.set_range(0, 10).set_step(1);
 
         const input = ui.get_input_state();
