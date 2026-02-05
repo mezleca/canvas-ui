@@ -30,6 +30,10 @@ export class ScrollBehavior implements Behavior {
         this.handle_scroll();
     }
 
+    private clamp(value: number, min: number, max: number): number {
+        return Math.max(min, Math.min(value, max));
+    }
+
     handle_scroll(): void {
         const input = this.node.get_input_state();
         const style = this.node.get_style();
@@ -50,7 +54,7 @@ export class ScrollBehavior implements Behavior {
             const scrollbar_width = style.scrollbar_width.value;
             const scrollbar_x = this.node.x + this.node.w - scrollbar_width;
             const is_holding = input.keys.has("mouse1");
-            const is_over_scrollbar = this.node.is_hovered_at(scrollbar_x, this.node.y, scrollbar_width, this.node.h);
+            const is_over_scrollbar = this.node.is_hovered_at(scrollbar_x, content_bounds.y, scrollbar_width, viewport_h);
 
             // start drag
             if (!this.holding_scrollbar && is_over_scrollbar && is_holding) {
@@ -67,14 +71,16 @@ export class ScrollBehavior implements Behavior {
             // handle drag (priority over wheel)
             if (this.holding_scrollbar) {
                 const delta_y = input.cursor.y - this.drag_start_y;
-                const scroll_ratio = this.max_scroll / (this.node.h - this.get_thumb_height(content_bounds.h));
+                const track_h = viewport_h;
+                const thumb_h = this.get_thumb_height(viewport_h);
+                const scroll_ratio = this.max_scroll / Math.max(1, track_h - thumb_h);
                 const new_scroll = this.drag_start_scroll + delta_y * scroll_ratio;
+                const clamped_scroll = this.clamp(new_scroll, 0, this.max_scroll);
 
-                if (new_scroll != this.scroll_top) {
+                if (clamped_scroll != this.scroll_top) {
+                    this.scroll_top = clamped_scroll;
                     updated = true;
                 }
-
-                this.scroll_top = Math.max(0, Math.min(new_scroll, this.max_scroll));
             }
 
             // handle wheel
@@ -86,12 +92,9 @@ export class ScrollBehavior implements Behavior {
 
                 if (nearest === this.node) {
                     const old_scroll = this.scroll_top;
-
-                    if (input.cursor.delta_y > 0) {
-                        this.scroll_top = Math.min(this.scroll_top + Math.abs(input.cursor.delta_y), this.max_scroll);
-                    } else if (input.cursor.delta_y < 0) {
-                        this.scroll_top = Math.max(this.scroll_top - Math.abs(input.cursor.delta_y), 0);
-                    }
+                    const delta = Math.abs(input.cursor.delta_y);
+                    const next_scroll = input.cursor.delta_y > 0 ? this.scroll_top + delta : this.scroll_top - delta;
+                    this.scroll_top = this.clamp(next_scroll, 0, this.max_scroll);
 
                     if (old_scroll != this.scroll_top) {
                         updated = true;
@@ -139,7 +142,7 @@ export class ScrollBehavior implements Behavior {
     private get_thumb_height(viewport_h: number): number {
         if (this.content_height <= 0) return 20;
         const view_ratio = viewport_h / this.content_height;
-        return Math.max(20, this.node.h * view_ratio);
+        return Math.max(20, viewport_h * view_ratio);
     }
 
     render(renderer: Renderer): void {
@@ -147,14 +150,17 @@ export class ScrollBehavior implements Behavior {
         if (this.max_scroll <= 0 || this.content_height <= this.node.h) return;
 
         const style = this.node.get_style();
-        const visual_offset = this.node.get_visual_offset();
-        const base_x = this.node.x + visual_offset.x;
-        const base_y = this.node.y + visual_offset.y;
+        const content_bounds = this.node.get_content_bounds();
+        const viewport_h = content_bounds.h;
+        const border = style.border_size.value || 0;
+        const base_x = Math.round(this.node.x);
+        const base_y = Math.round(this.node.y + border);
         const scrollbar_x = base_x + this.node.w - style.scrollbar_width.value;
+        const track_h = Math.max(0, Math.round(this.node.h - border * 2));
         const scrollbar_id = `${this.node.id}_scrollbar_bg`;
 
         // render background track
-        renderer.render_box(scrollbar_id, scrollbar_x, base_y, style.scrollbar_width.value, this.node.h, {
+        renderer.render_box(scrollbar_id, scrollbar_x, base_y, style.scrollbar_width.value, track_h, {
             background_color: style.scrollbar_background_color,
             border_size: { value: 0 },
             border_radius: style.scrollbar_thumb_radius,
@@ -162,12 +168,19 @@ export class ScrollBehavior implements Behavior {
         } as any);
 
         // render thumb
-        const thumb_height = this.get_thumb_height(this.node.get_content_bounds().h);
+        const view_ratio = this.content_height > 0 ? viewport_h / this.content_height : 1;
+        let thumb_height = Math.min(track_h, Math.round(Math.max(20, track_h * view_ratio)));
 
-        const max_scroll = Math.max(1, this.content_height - this.node.h);
+        const max_scroll = Math.max(1, this.content_height - viewport_h);
         const scroll_frac = this.scroll_top / max_scroll;
-        const available_space = this.node.h - thumb_height;
-        const thumb_y = base_y + scroll_frac * available_space;
+        const available_space = track_h - thumb_height;
+        let thumb_y = base_y + scroll_frac * available_space;
+        thumb_y = Math.round(Math.max(base_y, Math.min(thumb_y, base_y + available_space)));
+
+        const track_bottom = base_y + track_h;
+        if (thumb_y + thumb_height > track_bottom) {
+            thumb_height = Math.max(0, track_bottom - thumb_y);
+        }
 
         const scrollbar_thumb_id = `${this.node.id}_scrollbar_thumb`;
 
