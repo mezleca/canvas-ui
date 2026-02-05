@@ -1,6 +1,7 @@
 import { type Behavior, BEHAVIOR_TYPES } from "./behavior.ts";
 import type { Renderer } from "../renderer/renderer.ts";
 import type { Node } from "../core/node.ts";
+import { clamp } from "../core/math.ts";
 
 export class ScrollBehavior implements Behavior {
     type = BEHAVIOR_TYPES.SCROLL;
@@ -28,10 +29,6 @@ export class ScrollBehavior implements Behavior {
 
     update(dt: number): void {
         this.handle_scroll();
-    }
-
-    private clamp(value: number, min: number, max: number): number {
-        return Math.max(min, Math.min(value, max));
     }
 
     handle_scroll(): void {
@@ -75,7 +72,7 @@ export class ScrollBehavior implements Behavior {
                 const thumb_h = this.get_thumb_height(viewport_h);
                 const scroll_ratio = this.max_scroll / Math.max(1, track_h - thumb_h);
                 const new_scroll = this.drag_start_scroll + delta_y * scroll_ratio;
-                const clamped_scroll = this.clamp(new_scroll, 0, this.max_scroll);
+                const clamped_scroll = clamp(new_scroll, 0, this.max_scroll);
 
                 if (clamped_scroll != this.scroll_top) {
                     this.scroll_top = clamped_scroll;
@@ -94,7 +91,7 @@ export class ScrollBehavior implements Behavior {
                     const old_scroll = this.scroll_top;
                     const delta = Math.abs(input.cursor.delta_y);
                     const next_scroll = input.cursor.delta_y > 0 ? this.scroll_top + delta : this.scroll_top - delta;
-                    this.scroll_top = this.clamp(next_scroll, 0, this.max_scroll);
+                    this.scroll_top = clamp(next_scroll, 0, this.max_scroll);
 
                     if (old_scroll != this.scroll_top) {
                         updated = true;
